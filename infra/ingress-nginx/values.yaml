@@ -1,0 +1,10 @@
+ingress-nginx:
+  controller:
+    ingressClassResource:
+      default: true
+
+    service:
+      type: LoadBalancer
+
+    config:
+      server-tokens: "false"
