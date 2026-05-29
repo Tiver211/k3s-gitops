@@ -1,0 +1,19 @@
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: home-network-pool
+  namespace: metallb-system
+spec:
+  addresses:
+    # Впиши сюда свой свободный диапазон, который не занят нодами
+    - 192.168.88.200-192.168.88.220
+  autoAssign: true
+---
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: l2-adv
+  namespace: metallb-system
+spec:
+  ipAddressPools:
+    - home-network-pool
