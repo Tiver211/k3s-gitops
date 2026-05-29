@@ -1,7 +1,11 @@
 longhorn:
+  preUpgradeChecker:
+    jobEnabled: false
+
   persistence:
     defaultClass: true
     defaultClassReplicaCount: 1
+
   defaultSettings:
     taintToleration: "storage-only=true:NoSchedule"
     nodeDownPodDeletionPolicy: "delete-both-statefulset-and-deployment-pod"
