@@ -1,0 +1,10 @@
+longhorn:
+  persistence:
+    defaultClass: true
+    defaultClassReplicaCount: 1
+  defaultSettings:
+    taintToleration: "storage-only=true:NoSchedule"
+    nodeDownPodDeletionPolicy: "delete-both-statefulset-and-deployment-pod"
+    replicaAutoBalance: "best-effort"
+    storageOverProvisioningPercentage: 200
+    storageMinimalAvailablePercentage: 15

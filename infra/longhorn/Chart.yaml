@@ -1,0 +1,9 @@
+apiVersion: v2
+name: longhorn-infra
+description: A Helm chart for deploying Longhorn via ArgoCD
+version: 1.0.0
+
+dependencies:
+  - name: longhorn
+    version: "1.6.2"
+    repository: "https://charts.longhorn.io"
