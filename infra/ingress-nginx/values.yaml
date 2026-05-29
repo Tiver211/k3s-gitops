@@ -8,3 +8,6 @@ ingress-nginx:
 
     config:
       server-tokens: "false"
+
+    admissionWebhooks:
+      enabled: false
