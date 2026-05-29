@@ -12,3 +12,17 @@ longhorn:
     replicaAutoBalance: "best-effort"
     storageOverProvisioningPercentage: 200
     storageMinimalAvailablePercentage: 15
+
+  longhornManager:
+    tolerations:
+      - key: "storage-only"
+        operator: "Equal"
+        value: "true"
+        effect: "NoSchedule"
+
+  longhornDriver:
+    tolerations:
+      - key: "storage-only"
+        operator: "Equal"
+        value: "true"
+        effect: "NoSchedule"
