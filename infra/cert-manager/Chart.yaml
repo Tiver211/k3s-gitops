@@ -1,0 +1,9 @@
+apiVersion: v2
+name: cert-manager-infra
+description: Cert-Manager for automatic SSL
+version: 1.0.0
+
+dependencies:
+  - name: cert-manager
+    version: "v1.14.4"
+    repository: "https://charts.jetstack.io"
