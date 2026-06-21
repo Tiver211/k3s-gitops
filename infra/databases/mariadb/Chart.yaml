@@ -1,0 +1,7 @@
+apiVersion: v2
+name: mariadb-operator-infra
+version: 1.0.0
+dependencies:
+  - name: mariadb-operator
+    version: "26.6.0"
+    repository: "https://mariadb-operator.github.io/mariadb-operator"
