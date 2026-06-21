@@ -1,3 +1,5 @@
 mariadb-operator:
+  crds:
+    enabled: true
   metrics:
     enabled: false
