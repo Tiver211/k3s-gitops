@@ -3,8 +3,6 @@ kind: Redis
 metadata:
   name: authentik-redis
 spec:
-  kubernetesConfig:
-    kubernetesReadinessChecks: true
   redisExporter:
     enabled: false
   storage:
