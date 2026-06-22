@@ -1,48 +1,55 @@
-authentik:
-  postgresql:
-    enabled: false
-  redis:
-    enabled: false
+postgresql:
+  enabled: false
 
-  envValueFrom:
-    AUTHENTIK_SECRET_KEY:
-      secretKeyRef:
-        name: authentik-secret-key
-        key: AUTHENTIK_SECRET_KEY
+redis:
+  enabled: false
 
-    AUTHENTIK_POSTGRESQL__HOST:
-      secretKeyRef:
-        name: authentik-db-app
-        key: host
-    AUTHENTIK_POSTGRESQL__NAME:
-      secretKeyRef:
-        name: authentik-db-app
-        key: dbname
-    AUTHENTIK_POSTGRESQL__USER:
-      secretKeyRef:
-        name: authentik-db-app
-        key: user
-    AUTHENTIK_POSTGRESQL__PASSWORD:
-      secretKeyRef:
-        name: authentik-db-app
-        key: password
+server:
+  env: &env-config
+    - name: AUTHENTIK_SECRET_KEY
+      valueFrom:
+        secretKeyRef:
+          name: authentik-secret-key
+          key: AUTHENTIK_SECRET_KEY
 
-  env:
+    - name: AUTHENTIK_POSTGRESQL__HOST
+      valueFrom:
+        secretKeyRef:
+          name: authentik-db-app
+          key: host
+    - name: AUTHENTIK_POSTGRESQL__NAME
+      valueFrom:
+        secretKeyRef:
+          name: authentik-db-app
+          key: dbname
+    - name: AUTHENTIK_POSTGRESQL__USER
+      valueFrom:
+        secretKeyRef:
+          name: authentik-db-app
+          key: user
+    - name: AUTHENTIK_POSTGRESQL__PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: authentik-db-app
+          key: password
+
     - name: AUTHENTIK_REDIS__HOST
-      value: "authentik-redis.authentik.svc.cluster.local"
+      value: "authentik-redis-leader.authentik.svc.cluster.local"
 
-  server:
-    ingress:
-      enabled: true
-      ingressClassName: "nginx"
-      annotations:
-        cert-manager.io/cluster-issuer: "cloudflare-issuer"
-      hosts:
-        - host: sso.tiver212.ru
-          paths:
-            - path: /
-              pathType: Prefix
-      tls:
-        - secretName: authentik-tls-secret
-          hosts:
-            - sso.tiver212.ru
+  ingress:
+    enabled: true
+    ingressClassName: "nginx"
+    annotations:
+      cert-manager.io/cluster-issuer: "cloudflare-issuer"
+    hosts:
+      - host: sso.tiver212.ru
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: authentik-tls-secret
+        hosts:
+          - sso.tiver212.ru
+
+worker:
+  env: *env-config
