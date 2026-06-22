@@ -1,0 +1,48 @@
+authentik:
+  postgresql:
+    enabled: false
+  redis:
+    enabled: false
+
+  envValueFrom:
+    AUTHENTIK_SECRET_KEY:
+      secretKeyRef:
+        name: authentik-secret-key
+        key: AUTHENTIK_SECRET_KEY
+
+    AUTHENTIK_POSTGRESQL__HOST:
+      secretKeyRef:
+        name: authentik-db-app
+        key: host
+    AUTHENTIK_POSTGRESQL__NAME:
+      secretKeyRef:
+        name: authentik-db-app
+        key: dbname
+    AUTHENTIK_POSTGRESQL__USER:
+      secretKeyRef:
+        name: authentik-db-app
+        key: user
+    AUTHENTIK_POSTGRESQL__PASSWORD:
+      secretKeyRef:
+        name: authentik-db-app
+        key: password
+
+  env:
+    - name: AUTHENTIK_REDIS__HOST
+      value: "authentik-redis.authentik.svc.cluster.local"
+
+  server:
+    ingress:
+      enabled: true
+      ingressClassName: "nginx"
+      annotations:
+        cert-manager.io/cluster-issuer: "cloudflare-issuer"
+      hosts:
+        - host: sso.tiver212.ru
+          paths:
+            - path: /
+              pathType: Prefix
+      tls:
+        - secretName: authentik-tls-secret
+          hosts:
+            - sso.tiver212.ru

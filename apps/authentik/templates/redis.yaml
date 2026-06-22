@@ -1,0 +1,17 @@
+apiVersion: redis.redis.opstreelabs.in/v1beta1
+kind: Redis
+metadata:
+  name: authentik-redis
+spec:
+  kubernetesConfig:
+    kubernetesReadinessChecks: true
+  redisExporter:
+    enabled: false
+  storage:
+    volumeClaimTemplate:
+      spec:
+        storageClassName: longhorn
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
