@@ -3,8 +3,14 @@ kind: Redis
 metadata:
   name: authentik-redis
 spec:
+  kubernetesConfig:
+    image: quay.io/opstree/redis:v7.2.5
+    imagePullPolicy: IfNotPresent
+
   redisExporter:
-    enabled: false
+    enabled: true
+    image: quay.io/opstree/redis-exporter:v1.86.0
+
   storage:
     volumeClaimTemplate:
       spec:
