@@ -8,6 +8,8 @@ data:
     version: 1
     metadata:
       name: custom-branding
+      allowed_models:
+        - authentik_tenants.tenant
     entries:
       - model: authentik_tenants.tenant
         identifiers:
