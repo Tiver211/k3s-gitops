@@ -21,6 +21,16 @@ authentik:
           hosts:
             - sso.tiver212.ru
 
+    # Монтируем ConfigMap с чертежами в веб-сервер
+    volumes:
+      - name: custom-blueprints
+        configMap:
+          name: authentik-custom-blueprints
+    volumeMounts:
+      - name: custom-blueprints
+        mountPath: /blueprints/custom
+        readOnly: true
+
     env: &env-config
       - name: AUTHENTIK_SECRET_KEY
         valueFrom:
@@ -54,6 +64,16 @@ authentik:
 
   worker:
     env: *env-config
+
+    # Монтируем ConfigMap с чертежами в воркер (он отвечает за импорт чертежей)
+    volumes:
+      - name: custom-blueprints
+        configMap:
+          name: authentik-custom-blueprints
+    volumeMounts:
+      - name: custom-blueprints
+        mountPath: /blueprints/custom
+        readOnly: true
 
   # Внутренние настройки Authentik (базовые параметры самого приложения)
   authentik:
