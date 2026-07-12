@@ -51,6 +51,7 @@ erpnext:
         - "erpnext"
       adminExistingSecret: "erpnext-admin-secret"
       adminExistingSecretKey: "password"
+      backoffLimit: 5
 
   # Worker and Logs Persistence
   persistence:
