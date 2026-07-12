@@ -59,8 +59,10 @@ erpnext:
       size: 8Gi
       accessModes:
         - ReadWriteMany
+      storageClass: "longhorn"
     logs:
       enabled: true
       size: 8Gi
       accessModes:
         - ReadWriteMany
+      storageClass: "longhorn"
