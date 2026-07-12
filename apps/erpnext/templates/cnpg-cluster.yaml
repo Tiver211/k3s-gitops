@@ -1,0 +1,21 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: erpnext-postgres-cluster
+spec:
+  instances: 3
+  
+  # Superuser secret reference
+  superuserSecret:
+    name: erpnext-postgres-superuser
+
+  # Storage configuration using Longhorn
+  storage:
+    storageClass: longhorn
+    size: 10Gi
+
+  # DB initialization configuration
+  bootstrap:
+    initdb:
+      database: erpnext_db
+      owner: erpnext

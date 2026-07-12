@@ -1,0 +1,66 @@
+erpnext:
+  # Disable native database subcharts/StatefulSets (strict PostgreSQL CNPG enforcement)
+  mariadb:
+    enabled: false
+  mariadb-subchart:
+    enabled: false
+  mariadb-sts:
+    enabled: false
+  postgresql:
+    enabled: false
+  postgresql-subchart:
+    enabled: false
+  postgresql-sts:
+    enabled: false
+
+  # External Database Configuration (CNPG Cluster Endpoint)
+  dbHost: "erpnext-postgres-cluster-rw"
+  dbPort: 5432
+  dbRootUser: "postgres"
+  dbExistingSecret: "erpnext-postgres-superuser"
+  dbExistingSecretPasswordKey: "password"
+
+  # Explicit database type and host overrides
+  db:
+    type: "postgresql"
+    host: "erpnext-postgres-cluster-rw"
+
+  # Ingress Configuration (aligned with the cluster's domain, class, and TLS issuer)
+  ingress:
+    enabled: true
+    className: "nginx"
+    annotations:
+      cert-manager.io/cluster-issuer: "cloudflare-issuer"
+    hosts:
+      - host: "erp.printych.ru"
+        paths:
+          - path: "/"
+            pathType: Prefix
+    tls:
+      - secretName: erpnext-tls-secret
+        hosts:
+          - "erp.printych.ru"
+
+  # Automatic Site Creation Job
+  jobs:
+    createSite:
+      enabled: true
+      siteName: "erp.printych.ru"
+      dbType: "postgresql"
+      installApps:
+        - "erpnext"
+      adminExistingSecret: "erpnext-admin-secret"
+      adminExistingSecretKey: "password"
+
+  # Worker and Logs Persistence
+  persistence:
+    worker:
+      enabled: true
+      size: 8Gi
+      accessModes:
+        - ReadWriteMany
+    logs:
+      enabled: true
+      size: 8Gi
+      accessModes:
+        - ReadWriteMany
