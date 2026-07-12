@@ -14,7 +14,7 @@ erpnext:
     enabled: false
 
   # External Database Configuration (CNPG Cluster Endpoint)
-  dbHost: "erpnext-postgres-cluster-rw"
+  dbHost: "erpnext-postgres-cluster-rw.erpnext.svc.cluster.local"
   dbPort: 5432
   dbRootUser: "postgres"
   dbExistingSecret: "erpnext-postgres-superuser"
@@ -23,7 +23,7 @@ erpnext:
   # Explicit database type and host overrides
   db:
     type: "postgresql"
-    host: "erpnext-postgres-cluster-rw"
+    host: "erpnext-postgres-cluster-rw.erpnext.svc.cluster.local"
 
   # Ingress Configuration (aligned with the cluster's domain, class, and TLS issuer)
   ingress:
@@ -46,7 +46,7 @@ erpnext:
     createSite:
       enabled: true
       siteName: "erp.printych.ru"
-      dbType: "postgresql"
+      dbType: "postgres"
       installApps:
         - "erpnext"
       adminExistingSecret: "erpnext-admin-secret"
