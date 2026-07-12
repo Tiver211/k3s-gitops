@@ -13,17 +13,17 @@ erpnext:
   postgresql-sts:
     enabled: false
 
-  # External Database Configuration (CNPG Cluster Endpoint)
-  dbHost: "erpnext-postgres-cluster-rw.erpnext.svc.cluster.local"
-  dbPort: 5432
-  dbRootUser: "postgres"
-  dbExistingSecret: "erpnext-postgres-superuser"
+  # External Database Configuration (MariaDB Operator Endpoint)
+  dbHost: "erpnext-mariadb.erpnext.svc.cluster.local"
+  dbPort: 3306
+  dbRootUser: "root"
+  dbExistingSecret: "erpnext-mariadb-superuser"
   dbExistingSecretPasswordKey: "password"
 
   # Explicit database type and host overrides
   db:
-    type: "postgresql"
-    host: "erpnext-postgres-cluster-rw.erpnext.svc.cluster.local"
+    type: "mariadb"
+    host: "erpnext-mariadb.erpnext.svc.cluster.local"
 
   # Ingress Configuration (aligned with the cluster's domain, class, and TLS issuer)
   ingress:
@@ -46,7 +46,7 @@ erpnext:
     createSite:
       enabled: true
       siteName: "erp.printych.ru"
-      dbType: "postgres"
+      dbType: "mariadb"
       installApps:
         - "erpnext"
       adminExistingSecret: "erpnext-admin-secret"

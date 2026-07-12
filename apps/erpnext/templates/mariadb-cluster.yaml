@@ -1,0 +1,27 @@
+apiVersion: mariadb.mmontes.io/v1alpha1
+kind: MariaDB
+metadata:
+  name: erpnext-mariadb
+  namespace: erpnext
+spec:
+  # Root password secret reference
+  rootPasswordSecretKeyRef:
+    name: erpnext-mariadb-superuser
+    key: password
+
+  # HA clustering using Galera
+  replicas: 3
+  galera:
+    enabled: true
+    sst: mariabackup
+    replicaThreads: 4
+
+  # Storage configuration using Longhorn
+  storage:
+    volumeClaimTemplate:
+      resources:
+        requests:
+          storage: 10Gi
+      storageClassName: longhorn
+      accessModes:
+        - ReadWriteOnce
