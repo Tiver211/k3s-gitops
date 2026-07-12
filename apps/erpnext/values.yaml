@@ -16,7 +16,7 @@ erpnext:
   # External Database Configuration (CNPG Cluster Endpoint)
   dbHost: "erpnext-postgres-cluster-rw.erpnext.svc.cluster.local"
   dbPort: 5432
-  dbRootUser: "postgres"
+  dbRootUser: "2090f5a583a4a3da61924a085c22af085a7fb92eecf8215493cbf8a5c51e8e90"
   dbExistingSecret: "erpnext-postgres-superuser"
   dbExistingSecretPasswordKey: "password"
 
