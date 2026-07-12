@@ -5,6 +5,9 @@ metadata:
 spec:
   instances: 3
   
+  # Enable superuser access over network
+  enableSuperuserAccess: true
+
   # Superuser secret reference
   superuserSecret:
     name: erpnext-postgres-superuser
