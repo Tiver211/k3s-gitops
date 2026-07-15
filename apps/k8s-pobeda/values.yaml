@@ -1,0 +1,32 @@
+replicaCount: 1
+
+image:
+  repository: registry.tiver212.ru/k8s-pobeda
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+imagePullSecrets:
+  - name: registry-credentials
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  hosts:
+    - host: "kubewin.tiver212.ru"
+      paths:
+        - path: "/"
+          pathType: Prefix
+  tls:
+    - secretName: k8s-pobeda-tls-secret
+      hosts:
+        - "kubewin.tiver212.ru"
+
+sealedSecret:
+  enabled: true
+  encryptedDockerConfig: "PLACEHOLDER_FOR_ENCRYPTED_DOCKERCONFIGJSON"
