@@ -1,0 +1,19 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: k8s-pobeda
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: 'ssh://git@gitea.tiver212.ru:2222/tiver/k3s-gitops.git'
+    targetRevision: feature/k8s-pobeda-deploy
+    path: apps/k8s-pobeda
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: k8s-pobeda
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    createNamespace: true
