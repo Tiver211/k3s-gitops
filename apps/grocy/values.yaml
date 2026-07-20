@@ -26,7 +26,7 @@ app-template:
       annotations:
         cert-manager.io/cluster-issuer: "letsencrypt-prod"
       hosts:
-        - host: grocy.tiver212.ru`
+        - host: grocy.tiver212.ru
           paths:
             - path: /
               pathType: Prefix
