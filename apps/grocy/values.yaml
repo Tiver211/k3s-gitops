@@ -1,0 +1,49 @@
+app-template:
+  controllers:
+    main:
+      type: deployment
+      strategy: Recreate
+      containers:
+        main:
+          image:
+            repository: lscr.io/linuxserver/grocy
+            tag: latest
+          ports:
+            - name: http
+              containerPort: 80
+
+  service:
+    main:
+      controller: main
+      ports:
+        http:
+          port: 80
+
+  ingress:
+    main:
+      enabled: true
+      className: nginx
+      annotations:
+        cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      hosts:
+        - host: grocy.tiver212.ru`
+          paths:
+            - path: /
+              pathType: Prefix
+              service:
+                identifier: main
+                port: http
+      tls:
+        - hosts:
+            - grocy.tiver212.ru
+          secretName: grocy-tls-secret
+
+  persistence:
+    config:
+      enabled: true
+      type: persistentVolumeClaim
+      storageClass: longhorn
+      accessMode: ReadWriteOnce
+      size: 4Gi
+      globalMounts:
+        - path: /config
