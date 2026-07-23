@@ -1,0 +1,14 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: nfs-media
+provisioner: nfs.csi.k8s.io
+parameters:
+  server: {{ .Values.nfsMedia.server | quote }}
+  share: {{ .Values.nfsMedia.share | quote }}
+  subDir: "${pvc.metadata.namespace}-${pvc.metadata.name}"
+reclaimPolicy: Retain
+volumeBindingMode: Immediate
+mountOptions:
+  - nfsvers=4.1
+  - hard
