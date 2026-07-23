@@ -1,0 +1,59 @@
+name: ci
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install tools
+        run: |
+          curl -sSL https://get.helm.sh/helm-v3.15.4-linux-amd64.tar.gz | tar xz
+          sudo mv linux-amd64/helm /usr/local/bin/helm
+          curl -sSL https://github.com/yannh/kubeconform/releases/download/v0.6.7/kubeconform-linux-amd64.tar.gz | tar xz
+          sudo mv kubeconform /usr/local/bin/kubeconform
+          pip install --break-system-packages yamllint
+
+      - name: yamllint
+        run: yamllint -d relaxed .
+
+      - name: helm lint + template every chart
+        run: |
+          set -e
+          mkdir -p /tmp/rendered
+          for f in $(find . -name Chart.yaml -not -path "*/charts/*"); do
+            dir=$(dirname "$f")
+            echo "=== $dir ==="
+            helm dependency update "$dir"
+            helm lint "$dir"
+            out="/tmp/rendered/$(echo "$dir" | tr '/' '-').yaml"
+            if [ -f "$dir/values.yaml" ]; then
+              helm template "$dir" -f "$dir/values.yaml" > "$out"
+            else
+              helm template "$dir" > "$out"
+            fi
+          done
+
+      - name: kubeconform rendered charts
+        run: |
+          set -e
+          for f in /tmp/rendered/*.yaml; do
+            echo "=== $f ==="
+            kubeconform -ignore-missing-schemas -summary "$f"
+          done
+
+      - name: kubeconform bootstrap manifests
+        run: |
+          find bootstrap -name "*.yaml" | xargs kubeconform -ignore-missing-schemas -summary
+
+      - name: reject plaintext Secret manifests
+        run: |
+          if grep -rn "^kind: Secret$" --include="*.yaml" .; then
+            echo "Found a plain Secret manifest above - use SealedSecret instead"
+            exit 1
+          fi
+          echo "no plaintext Secrets found"
