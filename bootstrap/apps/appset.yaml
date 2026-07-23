@@ -1,0 +1,46 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: apps
+  namespace: argocd
+spec:
+  generators:
+    - git:
+        repoURL: https://gitea.tiver212.ru/tiver/k3s-gitops.git
+        revision: HEAD
+        directories:
+          - path: apps/*
+          - path: apps/authentik
+            exclude: true
+          - path: apps/erpnext
+            exclude: true
+          - path: apps/grocy
+            exclude: true
+          - path: apps/k8s-pobeda
+            exclude: true
+          - path: apps/ollama
+            exclude: true
+  template:
+    metadata:
+      name: '{{path.basename}}'
+      annotations:
+        argocd.argoproj.io/sync-wave: "9"
+    spec:
+      project: apps
+      source:
+        repoURL: https://gitea.tiver212.ru/tiver/k3s-gitops.git
+        targetRevision: HEAD
+        path: '{{path}}'
+        helm:
+          valueFiles:
+            - values.yaml
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: '{{path.basename}}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - ServerSideApply=true
+          - CreateNamespace=true
