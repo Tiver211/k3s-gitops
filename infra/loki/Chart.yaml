@@ -1,0 +1,7 @@
+apiVersion: v2
+name: loki-infra
+version: 1.0.0
+dependencies:
+  - name: loki
+    version: "7.1.0"
+    repository: "https://grafana.github.io/helm-charts"
