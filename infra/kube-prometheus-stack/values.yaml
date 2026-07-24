@@ -1,0 +1,66 @@
+kube-prometheus-stack:
+  # We run a single-node-ish homelab; disable components that assume a
+  # managed/HA control plane we don't have or can't scrape on k3s.
+  kubeControllerManager:
+    enabled: false
+  kubeScheduler:
+    enabled: false
+  kubeProxy:
+    enabled: false
+  kubeEtcd:
+    enabled: false
+
+  alertmanager:
+    enabled: true
+    # No receivers wired yet - notifications are deferred until Stalwart
+    # mail is up. Alerts still collect and are visible in the UI.
+    alertmanagerSpec:
+      storage:
+        volumeClaimTemplate:
+          spec:
+            storageClassName: longhorn
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: 2Gi
+
+  prometheus:
+    prometheusSpec:
+      retention: 15d
+      # Discover ServiceMonitors/PodMonitors from all namespaces, not just
+      # those with the release's helm labels - so app charts can ship their
+      # own ServiceMonitor without extra label wiring.
+      serviceMonitorSelectorNilUsesHelmValues: false
+      podMonitorSelectorNilUsesHelmValues: false
+      ruleSelectorNilUsesHelmValues: false
+      probeSelectorNilUsesHelmValues: false
+      storageSpec:
+        volumeClaimTemplate:
+          spec:
+            storageClassName: longhorn
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: 10Gi
+
+  grafana:
+    admin:
+      existingSecret: grafana-admin
+      userKey: admin-user
+      passwordKey: admin-password
+    persistence:
+      enabled: true
+      storageClassName: longhorn
+      accessModes: ["ReadWriteOnce"]
+      size: 2Gi
+    ingress:
+      enabled: true
+      ingressClassName: nginx
+      annotations:
+        cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      hosts:
+        - grafana.tiver212.ru
+      tls:
+        - hosts:
+            - grafana.tiver212.ru
+          secretName: grafana-tls-secret
