@@ -3,6 +3,14 @@ loki:
 
   loki:
     auth_enabled: false
+    # nfs-media share is owned by 1000:1000 (NFS root_squash anonuid=1000);
+    # Loki's default UID 10001 can't write to it. Run as 1000 to match.
+    podSecurityContext:
+      fsGroup: 1000
+      fsGroupChangePolicy: OnRootMismatch
+      runAsGroup: 1000
+      runAsNonRoot: true
+      runAsUser: 1000
     commonConfig:
       replication_factor: 1
     schemaConfig:
