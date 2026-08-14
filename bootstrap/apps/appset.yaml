@@ -10,8 +10,6 @@ spec:
         revision: HEAD
         directories:
           - path: apps/*
-          - path: apps/authentik
-            exclude: true
           - path: apps/erpnext
             exclude: true
           - path: apps/grocy
