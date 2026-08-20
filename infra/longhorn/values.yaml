@@ -4,7 +4,7 @@ longhorn:
 
   persistence:
     defaultClass: true
-    defaultClassReplicaCount: 1
+    defaultClassReplicaCount: 2
 
   defaultSettings:
     taintToleration: "storage-only=true:NoSchedule"
