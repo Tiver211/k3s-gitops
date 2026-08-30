@@ -1,0 +1,7 @@
+apiVersion: v2
+name: trilium
+version: 1.0.0
+dependencies:
+  - name: trilium
+    version: 2.0.0
+    repository: https://triliumnext.github.io/helm-charts
