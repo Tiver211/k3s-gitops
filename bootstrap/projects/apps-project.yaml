@@ -4,7 +4,7 @@ metadata:
   name: apps
   namespace: argocd
 spec:
-  description: User-facing applications - namespace-scoped only, no cluster-wide resources
+  description: User-facing applications - namespace-scoped only, except for their own Namespace
   sourceRepos:
     - https://gitea.tiver212.ru/tiver/k3s-gitops.git
   destinations:
@@ -13,4 +13,10 @@ spec:
   namespaceResourceWhitelist:
     - group: '*'
       kind: '*'
-  clusterResourceWhitelist: []
+  # Namespace is the one cluster-scoped resource apps may create: the
+  # ApplicationSet syncs with CreateNamespace=true, so a new apps/<name>/
+  # cannot deploy itself without it. ClusterRole/ClusterRoleBinding/CRDs
+  # stay forbidden - that is the boundary this project exists to enforce.
+  clusterResourceWhitelist:
+    - group: ''
+      kind: Namespace
