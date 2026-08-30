@@ -1,0 +1,44 @@
+global:
+  env:
+    - name: AUTHENTIK_POSTGRESQL__PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: authentik-db-app
+          key: password
+  envFrom:
+    - secretRef:
+        name: authentik-secret-key
+
+authentik:
+  authentik:
+    postgresql:
+      host: authentik-db-rw
+      name: authentik
+      user: authentik
+      port: 5432
+
+  server:
+    ingress:
+      enabled: true
+      ingressClassName: nginx
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt-prod
+      hosts:
+        - sso.tiver212.ru
+      tls:
+        - secretName: authentik-tls
+          hosts:
+            - sso.tiver212.ru
+    metrics:
+      enabled: true
+      serviceMonitor:
+        enabled: true
+
+  worker:
+    metrics:
+      enabled: true
+      serviceMonitor:
+        enabled: true
+
+  serviceAccount:
+    create: false
