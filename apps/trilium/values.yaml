@@ -1,0 +1,26 @@
+trilium:
+  persistence:
+    data:
+      enabled: true
+      size: 10Gi
+      storageClass: longhorn
+
+  ingress:
+    main:
+      enabled: true
+      className: nginx
+      annotations:
+        cert-manager.io/cluster-issuer: "letsencrypt-prod"
+        nginx.ingress.kubernetes.io/proxy-body-size: "0"
+      hosts:
+        - host: notes.tiver212.ru
+          paths:
+            - path: /
+              pathType: Prefix
+              service:
+                identifier: main
+                port: http
+      tls:
+        - hosts:
+            - notes.tiver212.ru
+          secretName: trilium-tls-secret
