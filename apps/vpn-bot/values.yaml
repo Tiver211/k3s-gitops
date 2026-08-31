@@ -1,0 +1,28 @@
+replicaCount: 1
+
+image:
+  repository: registry.tiver212.ru/vpn-bot
+  tag: "0.1.0"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets:
+  - name: registry-credentials
+
+logLevel: INFO
+
+# Bot traffic routes through this proxy - api.telegram.org is blocked/
+# throttled from this network directly. Not a secret, just a LAN address.
+proxyUrl: "socks5://192.168.0.100:2090"
+
+postgres:
+  storageClass: longhorn
+  size: 5Gi
+  database: vpnbot
+  owner: vpnbot
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    memory: 256Mi
