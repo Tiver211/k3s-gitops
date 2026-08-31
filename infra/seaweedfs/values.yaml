@@ -1,0 +1,63 @@
+seaweedfs:
+  # master/volume/filer/s3 default to enabled=true independent of allInOne -
+  # without disabling them explicitly, the chart runs BOTH the separate
+  # topology and allInOne side by side. Verified by rendering: leaving these
+  # untouched produced 3 extra StatefulSets (master, volume, filer) on top
+  # of the allInOne Deployment.
+  master:
+    enabled: false
+  volume:
+    enabled: false
+  filer:
+    enabled: false
+
+  allInOne:
+    enabled: true
+
+    # Everything (master metadata, volume data, filer state) lives in one
+    # pod. Default data.type is "emptyDir" - explicitly moved to a real PVC,
+    # otherwise a pod reschedule silently loses all volume data.
+    data:
+      type: persistentVolumeClaim
+      storageClass: longhorn
+      size: 20Gi
+
+    s3:
+      enabled: true
+      enableAuth: true
+
+    # WEED_LEVELDB2_ENABLED defaults to "true" on the non-allInOne filer
+    # component; setting it explicitly here removes any ambiguity about
+    # allInOne inheriting that default. Filer metadata (bucket/directory
+    # listings) is in Postgres (CNPG), not embedded LevelDB - keeps it out
+    # of the PVC and under the same backup story as everything else in CNPG.
+    extraEnvironmentVars:
+      WEED_LEVELDB2_ENABLED: "false"
+      WEED_POSTGRES_ENABLED: "true"
+      WEED_POSTGRES_HOSTNAME: seaweedfs-db-rw
+      WEED_POSTGRES_PORT: "5432"
+      WEED_POSTGRES_DATABASE: seaweedfs
+      WEED_POSTGRES_SSLMODE: disable
+
+    secretExtraEnvironmentVars:
+      WEED_POSTGRES_USERNAME:
+        secretKeyRef:
+          name: seaweedfs-db-app
+          key: username
+      WEED_POSTGRES_PASSWORD:
+        secretKeyRef:
+          name: seaweedfs-db-app
+          key: password
+
+  # Referencing existingSecret (rather than leaving credentials unset) is
+  # required for GitOps: without it, the chart's own generator falls back
+  # to a `lookup`-based random password that ArgoCD's offline `helm
+  # template` render can't resolve, regenerating a new one - and getting
+  # rejected as a diff - on every sync (same failure mode hit with the
+  # Garage chart's RPC secret).
+  s3:
+    credentials:
+      admin:
+        existingSecret: seaweedfs-s3-credentials
+      read:
+        existingSecret: seaweedfs-s3-credentials
