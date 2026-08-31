@@ -59,7 +59,7 @@ spec:
             - name: FRONT_END_DOMAIN
               value: "*"
             - name: SUB_PUBLIC_DOMAIN
-              value: "{{ .Values.domain }}/api/sub"
+              value: {{ .Values.subscriptionPage.domain | quote }}
             - name: IS_TELEGRAM_NOTIFICATIONS_ENABLED
               value: "false"
             - name: WEBHOOK_ENABLED

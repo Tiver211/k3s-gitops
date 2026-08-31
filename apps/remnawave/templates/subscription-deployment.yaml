@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: remnawave-subscription-page
+  labels:
+    app: remnawave-subscription-page
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: remnawave-subscription-page
+  template:
+    metadata:
+      labels:
+        app: remnawave-subscription-page
+    spec:
+      containers:
+        - name: subscription-page
+          image: "{{ .Values.subscriptionPage.image.repository }}:{{ .Values.subscriptionPage.image.tag }}"
+          env:
+            - name: APP_PORT
+              value: {{ .Values.subscriptionPage.port | quote }}
+            # Same namespace as the panel Service (`remnawave`, port from
+            # .Values.service.port) - internal ClusterIP, no ingress hop.
+            - name: REMNAWAVE_PANEL_URL
+              value: "http://remnawave:{{ .Values.service.port }}"
+            - name: TRUST_PROXY
+              value: "1"
+          envFrom:
+            - secretRef:
+                name: remnawave-subscription-token
+          ports:
+            - name: http
+              containerPort: {{ .Values.subscriptionPage.port }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              memory: 128Mi
