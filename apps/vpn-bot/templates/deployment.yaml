@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vpn-bot
+  labels:
+    app: vpn-bot
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: vpn-bot
+  template:
+    metadata:
+      labels:
+        app: vpn-bot
+    spec:
+      imagePullSecrets:
+        {{- toYaml .Values.imagePullSecrets | nindent 8 }}
+      # Schema must be current before the bot handles its first update -
+      # same ordering docker-compose.yaml enforces with `depends_on:
+      # migrate: condition: service_completed_successfully`. An initContainer
+      # gives the same guarantee: it must exit 0 before the main container
+      # starts.
+      initContainers:
+        - name: migrate
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["alembic", "upgrade", "head"]
+          env:
+            - name: POSTGRES_HOST
+              value: vpn-bot-db-rw
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: POSTGRES_DB
+              value: {{ .Values.postgres.database | quote }}
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: vpn-bot-db-app
+                  key: username
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: vpn-bot-db-app
+                  key: password
+      containers:
+        - name: vpn-bot
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: LOG_LEVEL
+              value: {{ .Values.logLevel | quote }}
+            - name: BOT_PROXY_URL
+              value: {{ .Values.proxyUrl | quote }}
+            - name: POSTGRES_HOST
+              value: vpn-bot-db-rw
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: POSTGRES_DB
+              value: {{ .Values.postgres.database | quote }}
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: vpn-bot-db-app
+                  key: username
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: vpn-bot-db-app
+                  key: password
+          envFrom:
+            - secretRef:
+                name: vpn-bot-secrets
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
