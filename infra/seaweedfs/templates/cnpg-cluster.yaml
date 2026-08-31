@@ -13,6 +13,19 @@ spec:
     initdb:
       database: seaweedfs
       owner: seaweedfs
+      # SeaweedFS's postgres filer store doesn't create its own schema -
+      # it fatal-crashes on startup if this table is missing. Runs once,
+      # only at cluster creation. Schema per:
+      # https://github.com/seaweedfs/seaweedfs/blob/master/weed/filer/postgres/README.txt
+      postInitApplicationSQL:
+        - |
+          CREATE TABLE IF NOT EXISTS filemeta (
+            dirhash     BIGINT,
+            name        VARCHAR(65535),
+            directory   VARCHAR(65535),
+            meta        bytea,
+            PRIMARY KEY (dirhash, name)
+          );
 
   monitoring:
     enablePodMonitor: true
