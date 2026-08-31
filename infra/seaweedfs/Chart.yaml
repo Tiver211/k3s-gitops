@@ -1,0 +1,8 @@
+apiVersion: v2
+name: seaweedfs-infra
+description: SeaweedFS S3-compatible object storage (allInOne, Postgres-backed filer)
+version: 1.0.0
+dependencies:
+  - name: seaweedfs
+    version: "4.44.0"
+    repository: "https://seaweedfs.github.io/seaweedfs/helm"
