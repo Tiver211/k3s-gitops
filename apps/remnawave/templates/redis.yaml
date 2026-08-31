@@ -1,0 +1,13 @@
+apiVersion: redis.redis.opstreelabs.in/v1beta2
+kind: Redis
+metadata:
+  name: remnawave-redis
+spec:
+  kubernetesConfig:
+    image: {{ .Values.redis.image }}
+    imagePullPolicy: IfNotPresent
+  # storage and kubernetesConfig.redisSecret are intentionally omitted:
+  # verified empirically against the live redis-operator that this creates
+  # no PVC and no auth secret - matches Remnawave's own docker-compose,
+  # which runs Valkey with `save "", appendonly no` (no persistence at all).
+  # Service is created with the exact CR name above: remnawave-redis:6379.

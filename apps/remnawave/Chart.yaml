@@ -1,0 +1,6 @@
+apiVersion: v2
+name: remnawave
+description: Remnawave panel - Xray-core proxy management (panel only, node runs elsewhere)
+type: application
+version: 1.0.0
+appVersion: "3"

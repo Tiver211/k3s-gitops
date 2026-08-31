@@ -1,0 +1,105 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: remnawave
+  labels:
+    app: remnawave
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: remnawave
+  template:
+    metadata:
+      labels:
+        app: remnawave
+    spec:
+      containers:
+        - name: remnawave
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          # DATABASE_URL must be a single connection string (Prisma), but the
+          # password comes from CNPG's generated secret and can't be
+          # interpolated via envValueFrom. docker-entrypoint.sh (upstream)
+          # requires DATABASE_URL to already be set, runs `prisma migrate
+          # deploy`, then `exec "$@"` - this wrapper composes the URL from
+          # the CNPG secret first, then hands off to the *original*
+          # entrypoint+cmd unmodified so migrations still run.
+          # Original: ENTRYPOINT ["/bin/sh","docker-entrypoint.sh"]
+          #           CMD ["pm2-runtime","start","ecosystem.config.js","--env","production"]
+          # Re-verify this if the upstream image's Dockerfile changes.
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              export DATABASE_URL="postgresql://${DB_USER}:${DB_PASSWORD}@remnawave-db-rw:5432/remnawave"
+              exec /bin/sh docker-entrypoint.sh pm2-runtime start ecosystem.config.js --env production
+          env:
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: remnawave-db-app
+                  key: username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: remnawave-db-app
+                  key: password
+            - name: REDIS_HOST
+              value: remnawave-redis
+            - name: REDIS_PORT
+              value: "6379"
+            - name: APP_PORT
+              value: {{ .Values.service.port | quote }}
+            - name: METRICS_PORT
+              value: "3001"
+            - name: API_INSTANCES
+              value: "1"
+            - name: PANEL_DOMAIN
+              value: {{ .Values.domain | quote }}
+            - name: FRONT_END_DOMAIN
+              value: "*"
+            - name: SUB_PUBLIC_DOMAIN
+              value: "{{ .Values.domain }}/api/sub"
+            - name: IS_TELEGRAM_NOTIFICATIONS_ENABLED
+              value: "false"
+            - name: WEBHOOK_ENABLED
+              value: "false"
+            - name: BANDWIDTH_USAGE_NOTIFICATIONS_ENABLED
+              value: "false"
+            - name: NOT_CONNECTED_USERS_NOTIFICATIONS_ENABLED
+              value: "false"
+            - name: EXPIRATION_NOTIFICATIONS_ENABLED
+              value: "false"
+            - name: EXPORT_TO_STREAM_ENABLED
+              value: "false"
+            - name: SHORT_UUID_METHOD
+              value: "nanoid"
+            - name: SHORT_UUID_LENGTH
+              value: "16"
+          envFrom:
+            - secretRef:
+                name: remnawave-secrets
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+            - name: metrics
+              containerPort: 3001
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: metrics
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: metrics
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}

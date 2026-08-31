@@ -1,0 +1,25 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: remnawave-db
+spec:
+  instances: 1
+
+  # imageName intentionally left unset: defaults to this operator's own
+  # tested PostgreSQL version (17.5 on CNPG 1.24, an EOL operator series
+  # not validated against PG18). Remnawave's docker-compose defaults to
+  # 18.4, but doesn't require it - no PG18-specific feature is used.
+  storage:
+    storageClass: {{ .Values.postgres.storageClass }}
+    size: {{ .Values.postgres.size }}
+
+  bootstrap:
+    initdb:
+      database: remnawave
+      owner: remnawave
+
+  monitoring:
+    enablePodMonitor: true
+
+  resources:
+    {{- toYaml .Values.resources | nindent 4 }}
