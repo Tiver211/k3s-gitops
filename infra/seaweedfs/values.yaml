@@ -25,6 +25,13 @@ seaweedfs:
     s3:
       enabled: true
       enableAuth: true
+      # NOT the same as top-level s3.createBuckets: the bucket-creation hook
+      # reads allInOne.s3.createBuckets specifically when allInOne.enabled is
+      # true (templates/shared/post-install-bucket-hook.yaml) - verified by
+      # rendering, top-level s3.createBuckets produces nothing in this mode.
+      createBuckets:
+        - name: public-assets
+          anonymousRead: true
 
     # WEED_LEVELDB2_ENABLED defaults to "true" on the non-allInOne filer
     # component; setting it explicitly here removes any ambiguity about
@@ -61,3 +68,17 @@ seaweedfs:
         existingSecret: seaweedfs-s3-credentials
       read:
         existingSecret: seaweedfs-s3-credentials
+
+    # Exposes the S3 API itself, not just this one bucket. Anonymous access
+    # is still bucket-scoped (only public-assets allows it) - everything
+    # else still needs a signed request with valid credentials.
+    ingress:
+      enabled: true
+      className: nginx
+      host: s3.tiver212.ru
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt-prod
+      tls:
+        - secretName: seaweedfs-s3-tls-secret
+          hosts:
+            - s3.tiver212.ru
