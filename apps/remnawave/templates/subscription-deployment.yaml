@@ -33,17 +33,23 @@ spec:
             - name: http
               containerPort: {{ .Values.subscriptionPage.port }}
               protocol: TCP
+          # httpGet doesn't work here: kubelet probes hit the pod IP
+          # directly, bypassing ingress-nginx entirely, so they never carry
+          # the X-Forwarded-Proto/X-Forwarded-For headers this app's
+          # ProxyCheckMiddleware requires on every request - it drops any
+          # request missing them (connection reset, not even a 4xx).
+          # Confirmed live: curl from inside the pod itself got "empty
+          # reply from server". TCP is the only probe type that doesn't
+          # go through that middleware.
           livenessProbe:
-            httpGet:
-              path: /
+            tcpSocket:
               port: http
             initialDelaySeconds: 15
             periodSeconds: 30
             timeoutSeconds: 5
             failureThreshold: 3
           readinessProbe:
-            httpGet:
-              path: /
+            tcpSocket:
               port: http
             initialDelaySeconds: 10
             periodSeconds: 10
