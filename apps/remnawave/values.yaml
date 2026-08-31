@@ -1,0 +1,33 @@
+replicaCount: 1
+
+image:
+  repository: remnawave/backend
+  tag: "3"
+  pullPolicy: IfNotPresent
+
+domain: remnawave.tiver212.ru
+
+service:
+  port: 3000
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  tls:
+    secretName: remnawave-tls-secret
+
+postgres:
+  storageClass: longhorn
+  size: 5Gi
+
+redis:
+  image: valkey/valkey:9-alpine
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    memory: 512Mi
