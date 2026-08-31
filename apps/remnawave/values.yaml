@@ -25,6 +25,13 @@ postgres:
 redis:
   image: valkey/valkey:9-alpine
 
+subscriptionPage:
+  image:
+    repository: remnawave/subscription-page
+    tag: "8.0.0"
+  domain: sub.remnawave.tiver212.ru
+  port: 3010
+
 resources:
   requests:
     cpu: 100m

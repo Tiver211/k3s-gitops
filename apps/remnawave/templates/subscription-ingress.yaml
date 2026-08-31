@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: remnawave-subscription-page
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: {{ .Values.subscriptionPage.domain | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: remnawave-subscription-page
+                port:
+                  name: http
+  tls:
+    - hosts:
+        - {{ .Values.subscriptionPage.domain | quote }}
+      secretName: remnawave-subscription-tls-secret
