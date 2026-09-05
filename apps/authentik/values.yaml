@@ -23,6 +23,7 @@ authentik:
     configMaps:
       - authentik-blueprint-groups
       - authentik-blueprint-paperless
+      - authentik-blueprint-paperless-access
       - authentik-blueprint-tiver-theme
 
   server:
