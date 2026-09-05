@@ -22,9 +22,14 @@ paperless-ngx:
     # (unlike Trilium, which has no equivalent env-based bootstrap).
     PAPERLESS_ADMIN_USER: admin
     PAPERLESS_ADMIN_MAIL: admin@tiver212.ru
-    # OIDC (PAPERLESS_SOCIALACCOUNT_PROVIDERS) deliberately not configured -
-    # authentik doesn't exist yet (torn down, not yet rebuilt). Local admin
-    # login for now, same call as Trilium.
+    # OIDC now that authentik is live again. Auto-signup: no group-based
+    # role sync yet (the *-admin/*-user group convention from CLAUDE.md
+    # doesn't exist in this fresh authentik rebuild - none of that
+    # scaffolding has been recreated). New SSO logins get a normal
+    # (non-superuser) account; promote via the Django admin manually until
+    # group sync gets built.
+    PAPERLESS_SOCIAL_AUTO_SIGNUP: "true"
+    PAPERLESS_SOCIALACCOUNT_ALLOW_SIGNUPS: "true"
 
     # PAPERLESS_DBUSER/DBPASS come from CNPG's own generated secret, not our
     # SealedSecret - same reasoning as every other CNPG-backed app here:
@@ -48,6 +53,11 @@ paperless-ngx:
   envFrom:
     - secretRef:
         name: paperless-ngx-secrets
+    # PAPERLESS_SOCIALACCOUNT_PROVIDERS - the whole JSON blob is sealed
+    # since the OIDC client secret lives inside it (django-allauth expects
+    # one JSON value here, not discrete fields).
+    - secretRef:
+        name: paperless-ngx-oidc
 
   podSecurityContext:
     runAsUser: 1000
