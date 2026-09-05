@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: authentik-blueprint-paperless-access
+data:
+  paperless-access.yaml: |
+    version: 1
+    metadata:
+      name: paperless-ngx access
+      labels:
+        blueprints.goauthentik.io/description: >-
+          Gates the Paperless-ngx Application to paperless-admin/paperless-user
+          members only. policy_engine_mode on the application is "any", so
+          membership in either group is sufficient - matches the CLAUDE.md
+          convention that only -admin and -user (not -viewer) grant access.
+    entries:
+      - model: authentik_policies.policybinding
+        identifiers:
+          target: !Find [authentik_core.application, [slug, paperless-ngx]]
+          group: !Find [authentik_core.group, [name, paperless-admin]]
+        attrs:
+          order: 0
+          enabled: true
+      - model: authentik_policies.policybinding
+        identifiers:
+          target: !Find [authentik_core.application, [slug, paperless-ngx]]
+          group: !Find [authentik_core.group, [name, paperless-user]]
+        attrs:
+          order: 1
+          enabled: true
