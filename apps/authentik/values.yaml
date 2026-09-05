@@ -8,6 +8,8 @@ global:
   envFrom:
     - secretRef:
         name: authentik-secret-key
+    - secretRef:
+        name: authentik-paperless-oidc
 
 authentik:
   authentik:
@@ -16,6 +18,10 @@ authentik:
       name: authentik
       user: authentik
       port: 5432
+
+  blueprints:
+    configMaps:
+      - authentik-blueprint-paperless
 
   server:
     ingress:
