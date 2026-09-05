@@ -1,0 +1,57 @@
+memos:
+  env:
+    MEMOS_DRIVER: postgres
+    # CNPG's generated app secret ships a ready-made connection string under
+    # `uri` - simpler than assembling one from discrete host/port/user/pass
+    # keys like the other CNPG-backed apps in this repo do.
+    MEMOS_DSN:
+      valueFrom:
+        secretKeyRef:
+          name: memos-db-app
+          key: uri
+    MEMOS_INSTANCE_URL: https://memos.tiver212.ru
+
+  service:
+    main:
+      ports:
+        http:
+          port: 5230
+
+  ingress:
+    main:
+      enabled: true
+      ingressClassName: nginx
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt-prod
+      hosts:
+        - host: memos.tiver212.ru
+          paths:
+            - path: /
+              pathType: Prefix
+      tls:
+        - hosts:
+            - memos.tiver212.ru
+          secretName: memos-tls-secret
+
+  persistence:
+    # Attachments (pasted/uploaded images) - local PVC for now. Memos also
+    # supports S3-compatible storage via an instance-setting file, which
+    # could point at the SeaweedFS instance already running in-cluster
+    # instead - deferred, not needed to get the app running.
+    data:
+      enabled: true
+      type: pvc
+      storageClass: longhorn
+      accessMode: ReadWriteOnce
+      size: 5Gi
+      mountPath: /var/opt/memos
+    # authentik OIDC identity-provider config - Memos' own file-based
+    # provisioning (docs/configuration-provisioning.md), not env vars.
+    # Filename inside the secret IS the path Memos reads
+    # (/etc/secrets/memos-idp-primary-sso.json).
+    oidc:
+      enabled: true
+      type: secret
+      name: memos-oidc-secret
+      mountPath: /etc/secrets
+      readOnly: true

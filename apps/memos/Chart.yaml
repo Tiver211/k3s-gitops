@@ -1,0 +1,9 @@
+apiVersion: v2
+name: memos
+description: Memos - self-hosted notes/memo hub
+type: application
+version: 0.1.0
+dependencies:
+  - name: memos
+    version: "0.55.0"
+    repository: "https://zekker6.github.io/helm-charts"

@@ -10,6 +10,8 @@ global:
         name: authentik-secret-key
     - secretRef:
         name: authentik-paperless-oidc
+    - secretRef:
+        name: authentik-memos-oidc
 
 authentik:
   authentik:
@@ -26,6 +28,7 @@ authentik:
       - authentik-blueprint-invitation-enrollment
       - authentik-blueprint-paperless
       - authentik-blueprint-paperless-access
+      - authentik-blueprint-memos
       - authentik-blueprint-tiver-theme
 
   server:
