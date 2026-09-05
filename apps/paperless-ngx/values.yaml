@@ -34,14 +34,23 @@ paperless-ngx:
     # (unlike Trilium, which has no equivalent env-based bootstrap).
     PAPERLESS_ADMIN_USER: admin
     PAPERLESS_ADMIN_MAIL: admin@tiver212.ru
-    # OIDC now that authentik is live again. Auto-signup: no group-based
-    # role sync yet (the *-admin/*-user group convention from CLAUDE.md
-    # doesn't exist in this fresh authentik rebuild - none of that
-    # scaffolding has been recreated). New SSO logins get a normal
-    # (non-superuser) account; promote via the Django admin manually until
-    # group sync gets built.
+    # OIDC now that authentik is live again.
     PAPERLESS_SOCIAL_AUTO_SIGNUP: "true"
     PAPERLESS_SOCIALACCOUNT_ALLOW_SIGNUPS: "true"
+    # Role sync: paperless-ngx has this built in (paperless/signals.py,
+    # wired to allauth's social_account_updated signal - fires on every SSO
+    # login, not just account creation). The "groups" claim comes for free
+    # from authentik's own default "profile" scope mapping, which already
+    # emits `"groups": [group.name for group in request.user.groups.all()]`
+    # (verified live via ScopeMapping.evaluate against a real user) - no
+    # authentik-side change needed, group names match the CLAUDE.md
+    # convention exactly. SYNC_STAFF_GROUP is deliberately unset: with only
+    # SYNC_SUPERUSER_GROUP set, is_staff falls back to mirroring
+    # is_superuser (see the elif branch in signals.py), so paperless-user
+    # members get plain access with no staff/admin surface.
+    PAPERLESS_SOCIAL_ACCOUNT_SYNC_GROUPS: "true"
+    PAPERLESS_SOCIAL_ACCOUNT_SYNC_GROUPS_CLAIM: groups
+    PAPERLESS_SOCIAL_ACCOUNT_SYNC_SUPERUSER_GROUP: paperless-admin
     # SOCIALACCOUNT_PROVIDERS alone isn't enough - allauth's openid_connect
     # provider app has to be added to INSTALLED_APPS via PAPERLESS_APPS,
     # or its URLs/login button never get registered at all (verified: without
