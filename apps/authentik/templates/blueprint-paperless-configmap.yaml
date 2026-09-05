@@ -22,6 +22,15 @@ data:
           client_type: confidential
           client_id: !Env AUTHENTIK_PAPERLESS_CLIENT_ID
           client_secret: !Env AUTHENTIK_PAPERLESS_CLIENT_SECRET
+          # grant_types has no default in this authentik version - an empty
+          # list means every authorize/token request gets rejected with
+          # "invalid_request" regardless of how the provider is otherwise
+          # configured (verified live: the button appeared, clicking it
+          # round-tripped straight back to an error page with exactly this
+          # cause).
+          grant_types:
+            - authorization_code
+            - refresh_token
           authorization_flow: !Find [authentik_flows.flow, [slug, default-provider-authorization-implicit-consent]]
           invalidation_flow: !Find [authentik_flows.flow, [slug, default-provider-invalidation-flow]]
           signing_key: !Find [authentik_crypto.certificatekeypair, [name, "authentik Self-signed Certificate"]]
