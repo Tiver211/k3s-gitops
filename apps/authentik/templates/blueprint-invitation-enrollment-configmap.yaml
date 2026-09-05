@@ -1,0 +1,169 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: authentik-blueprint-invitation-enrollment
+data:
+  invitation-enrollment.yaml: |
+    version: 1
+    metadata:
+      name: Invitation-based enrollment
+      labels:
+        blueprints.goauthentik.io/description: >-
+          Adapted from authentik's own bundled example
+          (blueprints/example/flows-invitation-enrollment-minimal.yaml).
+          Single internal-users flow, invitation-only
+          (continue_flow_without_invitation: false - unreachable without a
+          real invite link, and deliberately NOT wired to
+          IdentificationStage.enrollment_flow, so there's no public "sign
+          up" link on the login page either). New users auto-join the
+          "users" group. email is optional, not required - matches the
+          decision to keep email out of anything load-bearing.
+    entries:
+      - id: invitation-enrollment-flow
+        model: authentik_flows.flow
+        identifiers:
+          slug: invitation-enrollment
+        attrs:
+          name: Invitation Enrollment Flow
+          title: Добро пожаловать
+          designation: enrollment
+          authentication: require_unauthenticated
+
+      - id: invitation-enrollment-invitation-stage
+        model: authentik_stages_invitation.invitationstage
+        identifiers:
+          name: invitation-enrollment-invitation
+        attrs:
+          continue_flow_without_invitation: false
+
+      - id: invitation-enrollment-field-username
+        model: authentik_stages_prompt.prompt
+        identifiers:
+          name: invitation-enrollment-field-username
+        attrs:
+          field_key: username
+          label: Username
+          type: username
+          required: true
+          placeholder: Username
+          placeholder_expression: false
+          order: 0
+
+      - id: invitation-enrollment-field-password
+        model: authentik_stages_prompt.prompt
+        identifiers:
+          name: invitation-enrollment-field-password
+        attrs:
+          field_key: password
+          label: Password
+          type: password
+          required: true
+          placeholder: Password
+          placeholder_expression: false
+          order: 1
+
+      - id: invitation-enrollment-field-password-repeat
+        model: authentik_stages_prompt.prompt
+        identifiers:
+          name: invitation-enrollment-field-password-repeat
+        attrs:
+          field_key: password_repeat
+          label: Password (repeat)
+          type: password
+          required: true
+          placeholder: Password (repeat)
+          placeholder_expression: false
+          order: 2
+
+      - id: invitation-enrollment-field-name
+        model: authentik_stages_prompt.prompt
+        identifiers:
+          name: invitation-enrollment-field-name
+        attrs:
+          field_key: name
+          label: Name
+          type: text
+          required: true
+          placeholder: Name
+          placeholder_expression: false
+          order: 0
+
+      - id: invitation-enrollment-field-email
+        model: authentik_stages_prompt.prompt
+        identifiers:
+          name: invitation-enrollment-field-email
+        attrs:
+          field_key: email
+          label: Email (опционально)
+          type: email
+          required: false
+          placeholder: Email
+          placeholder_expression: false
+          order: 1
+
+      - id: invitation-enrollment-prompt-credentials
+        model: authentik_stages_prompt.promptstage
+        identifiers:
+          name: invitation-enrollment-prompt-credentials
+        attrs:
+          fields:
+            - !KeyOf invitation-enrollment-field-username
+            - !KeyOf invitation-enrollment-field-password
+            - !KeyOf invitation-enrollment-field-password-repeat
+
+      - id: invitation-enrollment-prompt-details
+        model: authentik_stages_prompt.promptstage
+        identifiers:
+          name: invitation-enrollment-prompt-details
+        attrs:
+          fields:
+            - !KeyOf invitation-enrollment-field-name
+            - !KeyOf invitation-enrollment-field-email
+
+      - id: invitation-enrollment-user-write
+        model: authentik_stages_user_write.userwritestage
+        identifiers:
+          name: invitation-enrollment-user-write
+        attrs:
+          user_creation_mode: always_create
+          user_type: internal
+          user_path_template: users/internal
+          create_users_group: !Find [authentik_core.group, [name, users]]
+
+      - id: invitation-enrollment-user-login
+        model: authentik_stages_user_login.userloginstage
+        identifiers:
+          name: invitation-enrollment-user-login
+
+      - model: authentik_flows.flowstagebinding
+        identifiers:
+          target: !KeyOf invitation-enrollment-flow
+          stage: !KeyOf invitation-enrollment-invitation-stage
+          order: 5
+        attrs:
+          evaluate_on_plan: true
+          re_evaluate_policies: true
+
+      - model: authentik_flows.flowstagebinding
+        identifiers:
+          target: !KeyOf invitation-enrollment-flow
+          stage: !KeyOf invitation-enrollment-prompt-credentials
+          order: 10
+
+      - model: authentik_flows.flowstagebinding
+        identifiers:
+          target: !KeyOf invitation-enrollment-flow
+          stage: !KeyOf invitation-enrollment-prompt-details
+          order: 15
+
+      - model: authentik_flows.flowstagebinding
+        identifiers:
+          target: !KeyOf invitation-enrollment-flow
+          stage: !KeyOf invitation-enrollment-user-write
+          order: 20
+
+      - model: authentik_flows.flowstagebinding
+        identifiers:
+          target: !KeyOf invitation-enrollment-flow
+          stage: !KeyOf invitation-enrollment-user-login
+          order: 100
