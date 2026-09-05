@@ -5,11 +5,11 @@ paperless-ngx:
   # (paperless.checks.E002) refuses a jump straight to v3 from anything
   # other than v2.20.15 exactly (verified live: it crash-looped going
   # 2.14.7 -> 3.1.3 directly, "last applied documents migration is
-  # '1061_...', expected '1075_workflowaction_order' (v2.20.15)"). Pinned
-  # here as the required intermediate step - bump to 3.1.3 only after this
-  # is deployed, healthy, and its migrations have actually run.
+  # '1061_...', expected '1075_workflowaction_order' (v2.20.15)"). Went
+  # through 2.20.15 first as the required intermediate step, confirmed
+  # healthy with migrations applied, then bumped here to 3.1.3.
   image:
-    tag: "2.20.15"
+    tag: "3.1.3"
 
   # Chart bundles Bitnami postgresql/redis subcharts by default - disabled
   # in favor of CNPG and redis-operator, matching every other app in this
