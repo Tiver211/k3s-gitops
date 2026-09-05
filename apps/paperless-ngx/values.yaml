@@ -30,6 +30,11 @@ paperless-ngx:
     # group sync gets built.
     PAPERLESS_SOCIAL_AUTO_SIGNUP: "true"
     PAPERLESS_SOCIALACCOUNT_ALLOW_SIGNUPS: "true"
+    # SOCIALACCOUNT_PROVIDERS alone isn't enough - allauth's openid_connect
+    # provider app has to be added to INSTALLED_APPS via PAPERLESS_APPS,
+    # or its URLs/login button never get registered at all (verified: without
+    # this, /accounts/oidc/.../login/ just 302s back to the login page).
+    PAPERLESS_APPS: allauth.socialaccount.providers.openid_connect
 
     # PAPERLESS_DBUSER/DBPASS come from CNPG's own generated secret, not our
     # SealedSecret - same reasoning as every other CNPG-backed app here:
