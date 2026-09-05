@@ -23,6 +23,7 @@ authentik:
     configMaps:
       - authentik-blueprint-groups
       - authentik-blueprint-passwordless
+      - authentik-blueprint-invitation-enrollment
       - authentik-blueprint-paperless
       - authentik-blueprint-paperless-access
       - authentik-blueprint-tiver-theme
