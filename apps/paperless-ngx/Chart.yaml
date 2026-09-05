@@ -1,0 +1,7 @@
+apiVersion: v2
+name: paperless-ngx
+version: 1.0.0
+dependencies:
+  - name: paperless-ngx
+    version: "0.24.1"
+    repository: "https://charts.gabe565.com"

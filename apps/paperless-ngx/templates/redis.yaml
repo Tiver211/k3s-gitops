@@ -1,0 +1,12 @@
+apiVersion: redis.redis.opstreelabs.in/v1beta2
+kind: Redis
+metadata:
+  name: paperless-ngx-redis
+spec:
+  kubernetesConfig:
+    image: valkey/valkey:9-alpine
+    imagePullPolicy: IfNotPresent
+  # storage/redisSecret intentionally omitted - task-queue broker only
+  # (scheduled tasks, index optimization, matcher training per upstream
+  # docs), no durable data. Verified empirically (see remnawave-redis):
+  # omitting both means no PVC and no auth secret get created.
