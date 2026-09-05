@@ -1,0 +1,75 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: authentik-blueprint-memos
+data:
+  memos.yaml: |
+    version: 1
+    metadata:
+      name: Memos
+    entries:
+      - model: authentik_core.group
+        identifiers:
+          name: memos-admin
+        attrs:
+          is_superuser: false
+      - model: authentik_core.group
+        identifiers:
+          name: memos-user
+        attrs:
+          is_superuser: false
+      - model: authentik_core.group
+        identifiers:
+          name: memos-viewer
+        attrs:
+          is_superuser: false
+
+      - id: memos-provider
+        model: authentik_providers_oauth2.oauth2provider
+        identifiers:
+          name: memos
+        attrs:
+          client_type: confidential
+          client_id: !Env AUTHENTIK_MEMOS_CLIENT_ID
+          client_secret: !Env AUTHENTIK_MEMOS_CLIENT_SECRET
+          # grant_types has no default in this authentik version - learned
+          # the hard way with paperless-ngx (empty list rejects every
+          # authorize/token request with invalid_request).
+          grant_types:
+            - authorization_code
+            - refresh_token
+          authorization_flow: !Find [authentik_flows.flow, [slug, default-provider-authorization-implicit-consent]]
+          invalidation_flow: !Find [authentik_flows.flow, [slug, default-provider-invalidation-flow]]
+          signing_key: !Find [authentik_crypto.certificatekeypair, [name, "authentik Self-signed Certificate"]]
+          redirect_uris:
+            - matching_mode: strict
+              url: "https://memos.tiver212.ru/auth/callback"
+              redirect_uri_type: authorization
+          property_mappings:
+            - !Find [authentik_providers_oauth2.scopemapping, [scope_name, openid]]
+            - !Find [authentik_providers_oauth2.scopemapping, [scope_name, email]]
+            - !Find [authentik_providers_oauth2.scopemapping, [scope_name, profile]]
+
+      - model: authentik_core.application
+        identifiers:
+          slug: memos
+        attrs:
+          name: Memos
+          provider: !KeyOf memos-provider
+          policy_engine_mode: any
+          open_in_new_tab: false
+
+      - model: authentik_policies.policybinding
+        identifiers:
+          target: !Find [authentik_core.application, [slug, memos]]
+          group: !Find [authentik_core.group, [name, memos-admin]]
+        attrs:
+          order: 0
+          enabled: true
+      - model: authentik_policies.policybinding
+        identifiers:
+          target: !Find [authentik_core.application, [slug, memos]]
+          group: !Find [authentik_core.group, [name, memos-user]]
+        attrs:
+          order: 1
+          enabled: true
