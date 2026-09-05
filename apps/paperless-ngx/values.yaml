@@ -1,0 +1,90 @@
+paperless-ngx:
+  # Chart bundles Bitnami postgresql/redis subcharts by default - disabled
+  # in favor of CNPG and redis-operator, matching every other app in this
+  # repo (see remnawave, authentik).
+  postgresql:
+    enabled: false
+  redis:
+    enabled: false
+
+  env:
+    PAPERLESS_DBENGINE: postgresql
+    PAPERLESS_DBHOST: paperless-ngx-db-rw
+    PAPERLESS_DBPORT: "5432"
+    PAPERLESS_DBNAME: paperless
+    # PAPERLESS_REDIS: no auth needed - redis-operator Redis CR ships with
+    # none by default (verified empirically against the live operator, see
+    # remnawave-redis), matching this app's own broker use case (scheduled
+    # tasks/celery, not a data store).
+    PAPERLESS_REDIS: redis://paperless-ngx-redis:6379
+    PAPERLESS_TIME_ZONE: Europe/Moscow
+    # Fixed admin, created at first boot - no interactive setup step needed
+    # (unlike Trilium, which has no equivalent env-based bootstrap).
+    PAPERLESS_ADMIN_USER: admin
+    PAPERLESS_ADMIN_MAIL: admin@tiver212.ru
+    # OIDC (PAPERLESS_SOCIALACCOUNT_PROVIDERS) deliberately not configured -
+    # authentik doesn't exist yet (torn down, not yet rebuilt). Local admin
+    # login for now, same call as Trilium.
+
+    # PAPERLESS_DBUSER/DBPASS come from CNPG's own generated secret, not our
+    # SealedSecret - same reasoning as every other CNPG-backed app here:
+    # never duplicate a password an operator already manages. This chart's
+    # env map takes either a plain string or a `valueFrom` object inline -
+    # verified by rendering; there's no separate envValueFrom key.
+    PAPERLESS_DBUSER:
+      valueFrom:
+        secretKeyRef:
+          name: paperless-ngx-db-app
+          key: username
+    PAPERLESS_DBPASS:
+      valueFrom:
+        secretKeyRef:
+          name: paperless-ngx-db-app
+          key: password
+
+  # PAPERLESS_SECRET_KEY (required - the app refuses to start without it)
+  # and PAPERLESS_ADMIN_PASSWORD come from the SealedSecret via envFrom,
+  # not this env block, so they're never in git as plaintext.
+  envFrom:
+    - secretRef:
+        name: paperless-ngx-secrets
+
+  podSecurityContext:
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
+
+  persistence:
+    data:
+      enabled: true
+      storageClass: longhorn
+      accessMode: ReadWriteOnce
+      size: 5Gi
+    media:
+      enabled: true
+      storageClass: nfs-media
+      accessMode: ReadWriteMany
+      size: 50Gi
+    consume:
+      storageClass: nfs-media
+      accessMode: ReadWriteMany
+      size: 10Gi
+    export:
+      storageClass: nfs-media
+      accessMode: ReadWriteMany
+      size: 10Gi
+
+  ingress:
+    main:
+      enabled: true
+      annotations:
+        nginx.ingress.kubernetes.io/proxy-body-size: 64m
+        cert-manager.io/cluster-issuer: letsencrypt-prod
+      hosts:
+        - host: paperless.tiver212.ru
+          paths:
+            - path: /
+      tls:
+        - secretName: paperless-ngx-tls-secret
+          hosts:
+            - paperless.tiver212.ru
