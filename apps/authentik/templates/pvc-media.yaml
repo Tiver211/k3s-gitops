@@ -3,9 +3,11 @@ kind: PersistentVolumeClaim
 metadata:
   name: authentik-media
 spec:
+  # Mounted at container path /data (see values.yaml server/worker.volumes -
+  # not /data/media, which is just a symlink authentik's own image ships).
   # RWX because server and worker both mount this at once (worker writes
-  # uploads, server serves them back) - see values.yaml server/worker.volumes.
-  # nfs-media rather than longhorn per repo convention for RWX (see CLAUDE.md).
+  # uploads, server serves them back). nfs-media rather than longhorn per
+  # repo convention for RWX (see CLAUDE.md).
   accessModes:
     - ReadWriteMany
   storageClassName: nfs-media

@@ -40,18 +40,20 @@ authentik:
       enabled: true
       serviceMonitor:
         enabled: true
-    # /media is where the image's own /data/media symlink points, and
-    # authentik's file-manager only allows writes when that resolves to a
-    # real mount (its own safety check against writing into the ephemeral
-    # container filesystem) - see pvc-media.yaml. Needed for uploaded
-    # branding assets (logo, flow background); nothing else uses it yet.
+    # Mounted at /data, not the /data/media symlink target /media: authentik's
+    # file-manager checks manageable() via pathlib Path.is_mount(), which does
+    # NOT follow symlinks here (verified live - os.path.ismount('/media')
+    # returns True through the symlink, but Path('./data/media').is_mount()
+    # stays False; only Path('/data').is_mount() is reliably True). Needed
+    # for uploaded branding assets (logo, flow background); nothing else uses
+    # it yet. See pvc-media.yaml.
     volumes:
       - name: media
         persistentVolumeClaim:
           claimName: authentik-media
     volumeMounts:
       - name: media
-        mountPath: /media
+        mountPath: /data
 
   worker:
     metrics:
@@ -64,7 +66,7 @@ authentik:
           claimName: authentik-media
     volumeMounts:
       - name: media
-        mountPath: /media
+        mountPath: /data
 
   serviceAccount:
     create: false
