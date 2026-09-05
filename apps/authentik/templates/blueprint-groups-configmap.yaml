@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: authentik-blueprint-groups
+data:
+  groups.yaml: |
+    version: 1
+    metadata:
+      name: Group scaffolding
+      labels:
+        blueprints.goauthentik.io/description: >-
+          Global admins/service-accounts/users tier plus per-service
+          paperless-admin/-user/-viewer groups, per CLAUDE.md convention.
+          Only -admin and -user get bound to an Application for access;
+          -viewer stays unbound (future homepage visibility marker).
+    entries:
+      - model: authentik_core.group
+        identifiers:
+          name: admins
+        attrs:
+          is_superuser: false
+      - model: authentik_core.group
+        identifiers:
+          name: service-accounts
+        attrs:
+          is_superuser: false
+      - model: authentik_core.group
+        identifiers:
+          name: users
+        attrs:
+          is_superuser: false
+      - model: authentik_core.group
+        identifiers:
+          name: paperless-admin
+        attrs:
+          is_superuser: false
+      - model: authentik_core.group
+        identifiers:
+          name: paperless-user
+        attrs:
+          is_superuser: false
+      - model: authentik_core.group
+        identifiers:
+          name: paperless-viewer
+        attrs:
+          is_superuser: false
