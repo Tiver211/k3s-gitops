@@ -1,4 +1,12 @@
 memos:
+  # Kubernetes injects Docker-links-style env vars for every Service in the
+  # namespace (MEMOS_PORT=tcp://<ip>:5230, etc.) - MEMOS_PORT happens to be
+  # exactly the env var Memos itself reads for its listen port (baked into
+  # the image as MEMOS_PORT=5230), so the injected value collided and
+  # Memos tried to parse "tcp://..." as an int, silently got 0, and bound
+  # to port 0 (verified live in the pod logs: "Server running on port 0").
+  enableServiceLinks: false
+
   env:
     MEMOS_DRIVER: postgres
     # CNPG's generated app secret ships a ready-made connection string under
