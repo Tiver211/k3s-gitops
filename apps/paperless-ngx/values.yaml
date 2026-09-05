@@ -1,16 +1,15 @@
 paperless-ngx:
-  # Chart (charts.gabe565.com) tracks its own release cadence, not upstream's -
-  # its latest chart version still ships app 2.14.7 while upstream is on
-  # 3.1.3. Overriding the tag directly is safe here: the chart doesn't gate
-  # any template logic on Chart.AppVersion, and every env var this file sets
-  # (PAPERLESS_DBHOST/PORT/NAME/USER/PASS, PAPERLESS_APPS,
-  # PAPERLESS_SOCIALACCOUNT_*) is unchanged in 3.1.3 (checked against
-  # src/paperless/settings/custom.py at that tag). The two data migrations
-  # 3.x needs - search index Whoosh->Tantivy and checksums MD5->SHA256 - both
-  # run automatically on container startup in the official Docker image, no
-  # manual step required.
+  # Chart (charts.gabe565.com) lags upstream (its latest still ships app
+  # 2.14.7 vs upstream 3.1.3) - overriding the tag directly instead of
+  # waiting on the chart. paperless-ngx's own startup check
+  # (paperless.checks.E002) refuses a jump straight to v3 from anything
+  # other than v2.20.15 exactly (verified live: it crash-looped going
+  # 2.14.7 -> 3.1.3 directly, "last applied documents migration is
+  # '1061_...', expected '1075_workflowaction_order' (v2.20.15)"). Pinned
+  # here as the required intermediate step - bump to 3.1.3 only after this
+  # is deployed, healthy, and its migrations have actually run.
   image:
-    tag: "3.1.3"
+    tag: "2.20.15"
 
   # Chart bundles Bitnami postgresql/redis subcharts by default - disabled
   # in favor of CNPG and redis-operator, matching every other app in this
