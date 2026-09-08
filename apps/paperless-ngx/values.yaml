@@ -36,7 +36,7 @@ paperless-ngx:
     # explicitly "must not be used in rootless containers" - which this is
     # (podSecurityContext below). Russian is added a different way instead:
     # see initContainers.
-    PAPERLESS_OCR_LANGUAGE: rus+eng
+    PAPERLESS_OCR_LANGUAGE: rus
     # Fixed admin, created at first boot - no interactive setup step needed
     # (unlike Trilium, which has no equivalent env-based bootstrap).
     PAPERLESS_ADMIN_USER: admin
