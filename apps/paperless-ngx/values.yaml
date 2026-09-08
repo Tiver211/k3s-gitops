@@ -111,7 +111,7 @@ paperless-ngx:
         - -c
         - |
           set -eu
-          cp -a /usr/share/tesseract-ocr/5/tessdata/. /tessdata-shared/
+          cp -r /usr/share/tesseract-ocr/5/tessdata/. /tessdata-shared/
           curl -fsSL -o /tessdata-shared/rus.traineddata \
             https://github.com/tesseract-ocr/tessdata_fast/raw/main/rus.traineddata
       volumeMounts:
