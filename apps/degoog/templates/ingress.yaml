@@ -9,24 +9,20 @@ metadata:
     # authenticated against authentik before reaching degoog - anonymous
     # visitors get redirected to sso.tiver212.ru to log in first.
     #
-    # auth-url MUST stay cluster-internal: it's a server-side subrequest, and
-    # pointing it at the public hostname sends it back out through
-    # Cloudflare and around - verified live (ingress-nginx access log showed
-    # the same request retried dozens of times with growing latency until it
-    # 500'd). auth-signin is different: it's a browser redirect, so it has to
-    # be the public URL.
-    nginx.ingress.kubernetes.io/auth-url: "http://authentik-outpost.degoog.svc.cluster.local/outpost.goauthentik.io/auth/nginx"
+    # auth-url uses the public hostname deliberately: authentik's embedded
+    # outpost matches which app a check belongs to by the raw Host header
+    # of the request (verified live), and auth-snippet cannot override Host
+    # on the internal _external-auth-* location ingress-nginx generates for
+    # auth-url - it's hardcoded from auth-url's own authority, snippet
+    # content never reached that block (checked the rendered nginx.conf).
+    # So Host has to already be right, which means auth-url's authority
+    # must be search.tiver212.ru. That would normally send this subrequest
+    # out through Cloudflare and back (verified live: it did, and timed
+    # out) - infra/ingress-nginx's hostAliases resolves this one hostname
+    # to 127.0.0.1 instead, so it loops back locally.
+    nginx.ingress.kubernetes.io/auth-url: "https://search.tiver212.ru/outpost.goauthentik.io/auth/nginx"
     nginx.ingress.kubernetes.io/auth-signin: "https://search.tiver212.ru/outpost.goauthentik.io/start?rd=$escaped_request_uri"
     nginx.ingress.kubernetes.io/auth-response-headers: "Set-Cookie"
-    # authentik's embedded outpost matches the app by the raw Host header of
-    # the auth subrequest, not X-Forwarded-Host - verified in authentik-server's
-    # own logs: routing to the internal service put
-    # "host":"authentik-outpost.degoog.svc.cluster.local" in the request, no
-    # app registered under that name, hence the 404. Must be forced back to
-    # the public host for this one subrequest.
-    nginx.ingress.kubernetes.io/auth-snippet: |
-      proxy_set_header Host search.tiver212.ru;
-      proxy_set_header X-Forwarded-Host $http_host;
 spec:
   ingressClassName: nginx
   tls:
