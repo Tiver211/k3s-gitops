@@ -1,0 +1,82 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: authentik-blueprint-search
+data:
+  search.yaml: |
+    version: 1
+    metadata:
+      name: Search (degoog) forward-auth
+      labels:
+        blueprints.goauthentik.io/description: >-
+          Gates search.tiver212.ru entirely behind authentik login via
+          nginx forward-auth (Forward Auth - Single Application), using
+          the built-in "authentik Embedded Outpost". Unlike a plain
+          OAuth2Provider, ProxyProviderSerializer.create/update calls
+          set_oauth_defaults() itself, so grant_types/client_type/
+          signing_key/property_mappings are all set correctly without
+          needing !Env-fixed values here - the client_id/secret are
+          purely internal to the outpost<->authentik handshake, no
+          external app ever needs them.
+    entries:
+      - model: authentik_core.group
+        identifiers:
+          name: search-admin
+        attrs:
+          is_superuser: false
+      - model: authentik_core.group
+        identifiers:
+          name: search-user
+        attrs:
+          is_superuser: false
+      - model: authentik_core.group
+        identifiers:
+          name: search-viewer
+        attrs:
+          is_superuser: false
+
+      - id: search-provider
+        model: authentik_providers_proxy.proxyprovider
+        identifiers:
+          name: search
+        attrs:
+          mode: forward_single
+          external_host: "https://search.tiver212.ru"
+          authorization_flow: !Find [authentik_flows.flow, [slug, default-provider-authorization-implicit-consent]]
+          invalidation_flow: !Find [authentik_flows.flow, [slug, default-provider-invalidation-flow]]
+
+      - model: authentik_core.application
+        identifiers:
+          slug: search
+        attrs:
+          name: Search
+          provider: !KeyOf search-provider
+          policy_engine_mode: any
+          open_in_new_tab: false
+
+      - model: authentik_policies.policybinding
+        identifiers:
+          target: !Find [authentik_core.application, [slug, search]]
+          group: !Find [authentik_core.group, [name, search-admin]]
+        attrs:
+          order: 0
+          enabled: true
+      - model: authentik_policies.policybinding
+        identifiers:
+          target: !Find [authentik_core.application, [slug, search]]
+          group: !Find [authentik_core.group, [name, search-user]]
+        attrs:
+          order: 1
+          enabled: true
+
+      # The embedded outpost's `providers` M2M has no other members right
+      # now (verified live) - if a second forward-auth app is added later,
+      # this entry must list ALL providers together, not just the new one,
+      # or the update will silently drop this one (full-object validation
+      # gotcha - see memory/authentik-blueprint-gotchas.md).
+      - model: authentik_outposts.outpost
+        identifiers:
+          name: authentik Embedded Outpost
+        attrs:
+          providers:
+            - !KeyOf search-provider
