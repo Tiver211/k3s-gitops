@@ -8,10 +8,10 @@ spec:
   ingressClassName: nginx
   tls:
     - hosts:
-        - degoog.tiver212.ru
+        - search.tiver212.ru
       secretName: degoog-tls-secret
   rules:
-    - host: degoog.tiver212.ru
+    - host: search.tiver212.ru
       http:
         paths:
           - path: /
