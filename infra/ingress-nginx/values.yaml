@@ -11,3 +11,19 @@ ingress-nginx:
 
     admissionWebhooks:
       enabled: false
+
+    # authentik forward-auth (apps/degoog) needs auth-url to use the app's
+    # own public hostname so authentik's outpost sees the right Host header
+    # (verified live: it matches the app by raw Host, not X-Forwarded-Host,
+    # and auth-snippet cannot override Host on the internal
+    # _external-auth-* location - that's hardcoded from auth-url's own
+    # authority). Without this alias, resolving that hostname normally
+    # would send the auth subrequest out through Cloudflare and back,
+    # which timed out (verified live: repeated retries, then 499/500).
+    # This keeps the same request loopback-local instead. Only affects
+    # DNS resolution inside this pod for this one name - no other routing
+    # changes.
+    hostAliases:
+      - ip: "127.0.0.1"
+        hostnames:
+          - "search.tiver212.ru"
