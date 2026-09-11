@@ -53,6 +53,7 @@ data:
           provider: !KeyOf search-provider
           policy_engine_mode: any
           open_in_new_tab: false
+          meta_launch_url: "https://search.tiver212.ru"
 
       - model: authentik_policies.policybinding
         identifiers:
