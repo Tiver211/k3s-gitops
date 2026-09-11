@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: authentik-outpost
+spec:
+  # Ingress backends must be a Service in the same namespace as the Ingress,
+  # but the embedded outpost is served by authentik-server in the authentik
+  # namespace - this ExternalName bridges the two so the /outpost.goauthentik.io
+  # forward-auth path can be routed there from search.tiver212.ru's Ingress.
+  type: ExternalName
+  externalName: authentik-server.authentik.svc.cluster.local
+  ports:
+    - name: http
+      port: 80

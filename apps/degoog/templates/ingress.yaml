@@ -4,6 +4,15 @@ metadata:
   name: degoog
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
+    # authentik forward-auth (Forward Auth - Single Application mode, via
+    # the built-in embedded outpost). Every request to this host is
+    # authenticated against authentik before reaching degoog - anonymous
+    # visitors get redirected to sso.tiver212.ru to log in first.
+    nginx.ingress.kubernetes.io/auth-url: "https://search.tiver212.ru/outpost.goauthentik.io/auth/nginx"
+    nginx.ingress.kubernetes.io/auth-signin: "https://search.tiver212.ru/outpost.goauthentik.io/start?rd=$escaped_request_uri"
+    nginx.ingress.kubernetes.io/auth-response-headers: "Set-Cookie"
+    nginx.ingress.kubernetes.io/auth-snippet: |
+      proxy_set_header X-Forwarded-Host $http_host;
 spec:
   ingressClassName: nginx
   tls:
@@ -14,6 +23,18 @@ spec:
     - host: search.tiver212.ru
       http:
         paths:
+          # More specific path first: the outpost's own auth/start/callback
+          # endpoints must reach authentik-server, not degoog, on this same
+          # host (see authentik-outpost-service.yaml for why an
+          # ExternalName Service is needed to cross into the authentik
+          # namespace).
+          - path: /outpost.goauthentik.io
+            pathType: Prefix
+            backend:
+              service:
+                name: authentik-outpost
+                port:
+                  number: 80
           - path: /
             pathType: Prefix
             backend:

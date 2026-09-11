@@ -29,6 +29,7 @@ authentik:
       - authentik-blueprint-paperless
       - authentik-blueprint-paperless-access
       - authentik-blueprint-memos
+      - authentik-blueprint-search
       - authentik-blueprint-tiver-theme
 
   server:
