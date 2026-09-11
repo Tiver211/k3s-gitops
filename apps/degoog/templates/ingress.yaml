@@ -8,7 +8,14 @@ metadata:
     # the built-in embedded outpost). Every request to this host is
     # authenticated against authentik before reaching degoog - anonymous
     # visitors get redirected to sso.tiver212.ru to log in first.
-    nginx.ingress.kubernetes.io/auth-url: "https://search.tiver212.ru/outpost.goauthentik.io/auth/nginx"
+    #
+    # auth-url MUST stay cluster-internal: it's a server-side subrequest, and
+    # pointing it at the public hostname sends it back out through
+    # Cloudflare and around - verified live (ingress-nginx access log showed
+    # the same request retried dozens of times with growing latency until it
+    # 500'd). auth-signin is different: it's a browser redirect, so it has to
+    # be the public URL.
+    nginx.ingress.kubernetes.io/auth-url: "http://authentik-outpost.degoog.svc.cluster.local/outpost.goauthentik.io/auth/nginx"
     nginx.ingress.kubernetes.io/auth-signin: "https://search.tiver212.ru/outpost.goauthentik.io/start?rd=$escaped_request_uri"
     nginx.ingress.kubernetes.io/auth-response-headers: "Set-Cookie"
     nginx.ingress.kubernetes.io/auth-snippet: |
