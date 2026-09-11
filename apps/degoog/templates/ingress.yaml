@@ -18,7 +18,14 @@ metadata:
     nginx.ingress.kubernetes.io/auth-url: "http://authentik-outpost.degoog.svc.cluster.local/outpost.goauthentik.io/auth/nginx"
     nginx.ingress.kubernetes.io/auth-signin: "https://search.tiver212.ru/outpost.goauthentik.io/start?rd=$escaped_request_uri"
     nginx.ingress.kubernetes.io/auth-response-headers: "Set-Cookie"
+    # authentik's embedded outpost matches the app by the raw Host header of
+    # the auth subrequest, not X-Forwarded-Host - verified in authentik-server's
+    # own logs: routing to the internal service put
+    # "host":"authentik-outpost.degoog.svc.cluster.local" in the request, no
+    # app registered under that name, hence the 404. Must be forced back to
+    # the public host for this one subrequest.
     nginx.ingress.kubernetes.io/auth-snippet: |
+      proxy_set_header Host search.tiver212.ru;
       proxy_set_header X-Forwarded-Host $http_host;
 spec:
   ingressClassName: nginx
