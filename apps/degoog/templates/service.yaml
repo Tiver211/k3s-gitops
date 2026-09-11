@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: degoog
+spec:
+  selector:
+    app: degoog
+  ports:
+    - name: http
+      port: 4444
+      targetPort: http
