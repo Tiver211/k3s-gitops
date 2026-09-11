@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: degoog-outpost
+  # Deliberately no auth-url/auth-signin here - this Ingress exists only to
+  # exempt /outpost.goauthentik.io from the forward-auth annotations on the
+  # main "degoog" Ingress for the same host (see the comment there). No TLS
+  # block needed either: ingress-nginx merges the cert from any Ingress
+  # that declares it for this host.
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: search.tiver212.ru
+      http:
+        paths:
+          - path: /outpost.goauthentik.io
+            pathType: Prefix
+            backend:
+              service:
+                name: authentik-outpost
+                port:
+                  number: 80

@@ -15,11 +15,18 @@ metadata:
     # on the internal _external-auth-* location ingress-nginx generates for
     # auth-url - it's hardcoded from auth-url's own authority, snippet
     # content never reached that block (checked the rendered nginx.conf).
-    # So Host has to already be right, which means auth-url's authority
-    # must be search.tiver212.ru. That would normally send this subrequest
-    # out through Cloudflare and back (verified live: it did, and timed
-    # out) - infra/ingress-nginx's hostAliases resolves this one hostname
-    # to 127.0.0.1 instead, so it loops back locally.
+    # That loops the subrequest back through this same hostname -
+    # infra/ingress-nginx's hostAliases resolves it to 127.0.0.1 instead of
+    # going out through Cloudflare (verified live: it did, and timed out).
+    #
+    # The outpost's own /outpost.goauthentik.io path is NOT in this Ingress
+    # (see ingress-outpost.yaml) on purpose: auth-url/auth-signin annotations
+    # apply to every path in the Ingress that carries them, so keeping that
+    # path here would make the auth subrequest itself require auth -
+    # infinite recursion (verified live: the exact same request retried
+    # dozens of times with growing latency, then 499). A second,
+    # annotation-free Ingress for the same host is the standard way to
+    # exempt one path.
     nginx.ingress.kubernetes.io/auth-url: "https://search.tiver212.ru/outpost.goauthentik.io/auth/nginx"
     nginx.ingress.kubernetes.io/auth-signin: "https://search.tiver212.ru/outpost.goauthentik.io/start?rd=$escaped_request_uri"
     nginx.ingress.kubernetes.io/auth-response-headers: "Set-Cookie"
@@ -33,18 +40,6 @@ spec:
     - host: search.tiver212.ru
       http:
         paths:
-          # More specific path first: the outpost's own auth/start/callback
-          # endpoints must reach authentik-server, not degoog, on this same
-          # host (see authentik-outpost-service.yaml for why an
-          # ExternalName Service is needed to cross into the authentik
-          # namespace).
-          - path: /outpost.goauthentik.io
-            pathType: Prefix
-            backend:
-              service:
-                name: authentik-outpost
-                port:
-                  number: 80
           - path: /
             pathType: Prefix
             backend:
