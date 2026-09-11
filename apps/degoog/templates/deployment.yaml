@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: degoog
+  labels:
+    app: degoog
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: degoog
+  template:
+    metadata:
+      labels:
+        app: degoog
+    spec:
+      # No podSecurityContext: the image's own entrypoint starts as root to
+      # chown /app/data, then drops to PUID:PGID (default 1000:1000) itself
+      # via su-exec - same shape as memos. Forcing runAsUser here would
+      # break that internal chown step.
+      #
+      # enableServiceLinks: false - learned from memos. The Service below is
+      # named "degoog", so Kubernetes would inject DEGOOG_PORT=tcp://<ip>:4444
+      # into this pod's env - colliding with degoog's own DEGOOG_PORT
+      # (its listen-port setting, documented default 4444). Same failure
+      # mode as memos: app tries to parse the injected URL as a port number.
+      enableServiceLinks: false
+      containers:
+        - name: degoog
+          image: ghcr.io/degoog-org/degoog:0.25.0
+          ports:
+            - name: http
+              containerPort: 4444
+          env:
+            - name: DEGOOG_PUBLIC_INSTANCE
+              value: "true"
+            # ingress-nginx sits in front of this - trust its
+            # X-Forwarded-For/-Proto headers instead of the default
+            # (DEGOOG_DISTRUST_PROXY defaults to 1, i.e. ignore them).
+            - name: DEGOOG_DISTRUST_PROXY
+              value: "0"
+            - name: DEGOOG_POSTGRES
+              valueFrom:
+                secretKeyRef:
+                  name: degoog-db-app
+                  key: uri
+            - name: DEGOOG_VALKEY_URL
+              value: redis://degoog-redis:6379
+          envFrom:
+            - secretRef:
+                name: degoog-secrets
+          volumeMounts:
+            - name: data
+              mountPath: /app/data
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              memory: 512Mi
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: degoog-data

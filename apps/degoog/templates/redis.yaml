@@ -1,0 +1,13 @@
+apiVersion: redis.redis.opstreelabs.in/v1beta2
+kind: Redis
+metadata:
+  name: degoog-redis
+spec:
+  kubernetesConfig:
+    image: valkey/valkey:9-alpine
+    imagePullPolicy: IfNotPresent
+  # storage/redisSecret intentionally omitted - shared cache only (settings
+  # sync / invalidation across replicas, not durable data), matching every
+  # other redis-operator use in this repo. Verified empirically elsewhere
+  # (see remnawave-redis): omitting both means no PVC and no auth secret
+  # get created.
