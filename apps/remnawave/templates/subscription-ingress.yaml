@@ -4,6 +4,17 @@ metadata:
   name: remnawave-subscription-page
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
+    # The subscription-page Node.js server closes idle keepalive sockets
+    # on its own timeout, racing nginx's upstream connection reuse -
+    # intermittent "upstream prematurely closed connection" surfaced as
+    # 502 to real VPN clients refreshing their subscription (confirmed
+    # live in ingress-nginx logs, e.g. GET / and GET /<sub-token>).
+    # Closing the connection per-request instead of reusing it removes
+    # the race entirely; the retry is a second safety net in case it
+    # still happens once in a while under load.
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      proxy_set_header Connection "close";
+    nginx.ingress.kubernetes.io/proxy-next-upstream: "error timeout http_502"
 spec:
   ingressClassName: nginx
   rules:
