@@ -12,6 +12,8 @@ global:
         name: authentik-paperless-oidc
     - secretRef:
         name: authentik-memos-oidc
+    - secretRef:
+        name: authentik-matrix-oidc
 
 authentik:
   authentik:
@@ -31,6 +33,7 @@ authentik:
       - authentik-blueprint-memos
       - authentik-blueprint-search
       - authentik-blueprint-tiver-theme
+      - authentik-blueprint-matrix
 
   server:
     ingress:

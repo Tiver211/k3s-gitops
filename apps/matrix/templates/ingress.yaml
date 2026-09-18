@@ -1,0 +1,42 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: matrix
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    # Federation payloads/state-res transactions can be larger than the
+    # nginx default body size - bump it so incoming federation traffic
+    # isn't silently rejected with 413.
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - matrix.tiver212.ru
+        - matrix-federation.tiver212.ru
+      secretName: matrix-tls-secret
+  rules:
+    - host: matrix.tiver212.ru
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: matrix
+                port:
+                  number: 8008
+    # .well-known/matrix/server on the bare tiver212.ru domain already
+    # delegates federation to matrix-federation.tiver212.ru:443 (verified
+    # live, unchanged from the old server) - this host just needs to
+    # resolve to this same Synapse instance.
+    - host: matrix-federation.tiver212.ru
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: matrix
+                port:
+                  number: 8008
