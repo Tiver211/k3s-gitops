@@ -54,9 +54,19 @@ spec:
             initialDelaySeconds: 10
             periodSeconds: 10
             timeoutSeconds: 5
+          # 128Mi was too tight for this Nest.js app - caught live at
+          # 111Mi/128Mi (87%) while wedged: TCP accepted new connections
+          # (readiness stayed green) but the event loop was too
+          # GC-starved to ever write a response, so every request timed
+          # out as "empty reply from server" - both through ingress-nginx
+          # and hitting the pod directly. Not a keepalive/proxy-header
+          # issue (ruled out live: explicit X-Forwarded-* headers didn't
+          # help either) - real memory pressure. TCP-only probes can't
+          # detect this failure mode (port stays open) - if this recurs
+          # after the higher limit, the probe design needs revisiting too.
           resources:
             requests:
               cpu: 50m
-              memory: 64Mi
-            limits:
               memory: 128Mi
+            limits:
+              memory: 384Mi
