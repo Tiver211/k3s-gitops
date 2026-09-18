@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: matrix
+  labels:
+    app: matrix
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: matrix
+  template:
+    metadata:
+      labels:
+        app: matrix
+    spec:
+      containers:
+        - name: synapse
+          image: matrixdotorg/synapse:latest
+          args: ["-c", "/data/homeserver.yaml"]
+          ports:
+            - name: http
+              containerPort: 8008
+            - name: metrics
+              containerPort: 9000
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: homeserver-config
+              mountPath: /data/homeserver.yaml
+              subPath: homeserver.yaml
+              readOnly: true
+            - name: log-config
+              mountPath: /data/log.config
+              subPath: log.config
+              readOnly: true
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          # OOM was the actual failure mode on the old VM (uncontrolled
+          # growth crashed the whole host via the kernel OOM-killer). A
+          # limit here caps the blast radius to "this one pod restarts" -
+          # k8s OOMKills and brings it straight back instead of the host
+          # hanging. Root cause on the old server was never diagnosed
+          # (suspected large public rooms) - revisit if this pod starts
+          # OOMKilling too.
+          resources:
+            requests:
+              cpu: 200m
+              memory: 256Mi
+            limits:
+              memory: 1536Mi
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: matrix-data
+        - name: homeserver-config
+          secret:
+            secretName: matrix-homeserver-config
+        - name: log-config
+          configMap:
+            name: matrix-log-config

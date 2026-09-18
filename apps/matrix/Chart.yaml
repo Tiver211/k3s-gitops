@@ -1,0 +1,6 @@
+apiVersion: v2
+name: matrix
+description: Synapse (Matrix homeserver) - bespoke chart, no upstream dependency
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
