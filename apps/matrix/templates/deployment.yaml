@@ -16,6 +16,15 @@ spec:
       labels:
         app: matrix
     spec:
+      # The official image runs as non-root (uid/gid 991) by default but
+      # does no chown of its own on a fresh volume (unlike degoog/memos,
+      # which chown /app/data themselves as part of their entrypoint) -
+      # a brand-new Longhorn PVC is root-owned, so the signing-key
+      # auto-generation step on first boot failed with EACCES until this
+      # was added (verified live).
+      securityContext:
+        fsGroup: 991
+        runAsUser: 991
       containers:
         - name: synapse
           image: matrixdotorg/synapse:latest
