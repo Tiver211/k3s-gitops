@@ -19,7 +19,11 @@ spec:
       containers:
         - name: synapse
           image: matrixdotorg/synapse:latest
-          args: ["-c", "/data/homeserver.yaml"]
+          # No args/command override: the official image's own entrypoint
+          # defaults to "run" mode, which reads SYNAPSE_CONFIG_PATH
+          # (defaults to /data/homeserver.yaml) - exactly where the secret
+          # below is mounted. Passing "-c" directly confuses its own mode
+          # parser ("Unknown execution mode '-c'") - verified live.
           ports:
             - name: http
               containerPort: 8008
