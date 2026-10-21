@@ -1,0 +1,37 @@
+replicaCount: 1
+
+# Built from github.com/Tiver211/sdamgia_hack (telegram_bot/Dockerfile) -
+# upstream publishes no image. Tag is the source commit's short sha.
+image:
+  repository: registry.tiver212.ru/sdamgia-hack
+  tag: "7a8dcf1"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets:
+  - name: registry-credentials
+
+# Required: the bot passes it straight to logging.Handler.setLevel(), which
+# raises on an unset value.
+logLevel: INFO
+
+# api.telegram.org is blocked/throttled from this network directly. The bot
+# has no proxy setting of its own - pyTelegramBotAPI and requests pick it
+# up from the standard env vars (needs PySocks, added in the image).
+# socks5h so DNS is resolved on the proxy side too. Not a secret, just a
+# LAN address.
+proxyUrl: "socks5h://192.168.0.100:1090"
+# sdamgia.ru is a Russian site - reach it directly, not via the foreign exit.
+noProxy: "sdamgia.ru,.sdamgia.ru,localhost,127.0.0.1,.svc,.cluster.local"
+
+postgres:
+  storageClass: longhorn
+  size: 2Gi
+  database: sdamgia
+  owner: sdamgia
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    memory: 256Mi
