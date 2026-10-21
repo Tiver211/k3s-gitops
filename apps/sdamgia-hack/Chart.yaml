@@ -1,0 +1,6 @@
+apiVersion: v2
+name: sdamgia-hack
+description: sdamgia_hack Telegram bot (pyTelegramBotAPI, long-polling, no HTTP)
+type: application
+version: 1.0.0
+appVersion: "7a8dcf1"

@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sdamgia-hack
+  labels:
+    app: sdamgia-hack
+spec:
+  replicas: {{ .Values.replicaCount }}
+  # Two pollers on one bot token get 409 Conflict from Telegram - never run
+  # old and new pods side by side.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: sdamgia-hack
+  template:
+    metadata:
+      labels:
+        app: sdamgia-hack
+    spec:
+      imagePullSecrets:
+        {{- toYaml .Values.imagePullSecrets | nindent 8 }}
+      containers:
+        - name: sdamgia-hack
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: LOGGER_LEVEL
+              value: {{ .Values.logLevel | quote }}
+            # The bot retries psycopg2.connect() in a loop until the DB is
+            # up, so no initContainer is needed. CNPG's app secret ships a
+            # ready libpq URI, which is exactly what POSTGRES_CONN expects.
+            - name: POSTGRES_CONN
+              valueFrom:
+                secretKeyRef:
+                  name: sdamgia-hack-db-app
+                  key: uri
+            - name: HTTPS_PROXY
+              value: {{ .Values.proxyUrl | quote }}
+            - name: HTTP_PROXY
+              value: {{ .Values.proxyUrl | quote }}
+            - name: NO_PROXY
+              value: {{ .Values.noProxy | quote }}
+          envFrom:
+            - secretRef:
+                name: sdamgia-hack-secrets
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
