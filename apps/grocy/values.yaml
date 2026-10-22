@@ -6,7 +6,7 @@ app-template:
       containers:
         main:
           image:
-            repository: lscr.io/linuxserver/grocy
+            repository: ghcr.io/linuxserver/grocy
             tag: latest
           ports:
             - name: http
