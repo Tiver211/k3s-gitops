@@ -27,6 +27,11 @@ kube-prometheus-stack:
   prometheus:
     prometheusSpec:
       retention: 15d
+      # Size cap is what actually protects the volume: with only a time
+      # limit the TSDB/WAL filled the 10Gi PVC and Prometheus crash-looped
+      # for weeks on "no space left on device". Keep it ~80% of the PVC so
+      # the WAL and compaction still have headroom.
+      retentionSize: 16GB
       # Discover ServiceMonitors/PodMonitors from all namespaces, not just
       # those with the release's helm labels - so app charts can ship their
       # own ServiceMonitor without extra label wiring.
@@ -41,7 +46,11 @@ kube-prometheus-stack:
             accessModes: ["ReadWriteOnce"]
             resources:
               requests:
-                storage: 10Gi
+                # Raised from 10Gi. Neither the operator nor the StatefulSet
+                # grows an existing PVC: patch the PVC to 20Gi by hand once
+                # (Longhorn allows expansion), then delete the StatefulSet
+                # with --cascade=orphan so the operator recreates it.
+                storage: 20Gi
 
   grafana:
     admin:

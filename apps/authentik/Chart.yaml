@@ -4,4 +4,7 @@ version: 1.0.0
 dependencies:
   - name: authentik
     version: "2026.5.6"
-    repository: "https://charts.goauthentik.io"
+    # OCI on ghcr instead of https://charts.goauthentik.io: that index sits
+    # behind Cloudflare, which stalls from the home network, so ArgoCD timed
+    # out adding the repo and authentik sat at sync Unknown.
+    repository: "oci://ghcr.io/goauthentik/helm-charts"
