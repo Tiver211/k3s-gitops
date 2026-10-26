@@ -7,7 +7,10 @@ app-template:
         main:
           image:
             repository: ghcr.io/linuxserver/grocy
-            tag: latest
+            # Pinned: `latest` let an unreviewed image roll in on every
+            # restart. v4.7.1-ls346 is the build live after the 2026-10-22
+            # emergency fix (sha256:d63bffe9…, checked on ghcr).
+            tag: v4.7.1-ls346
           ports:
             - name: http
               containerPort: 80

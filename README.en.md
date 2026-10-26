@@ -24,13 +24,14 @@ Startup order matters, so infrastructure components carry sync waves. ArgoCD wai
 - 5 — ingress-nginx
 - 6 — ingress for ArgoCD, kube-prometheus-stack, Loki
 - 7 — Alloy
-- 8, 9 — applications
+- 8 — SeaweedFS (S3) and applications with an explicit Application
+- 9 — everything picked up by the ApplicationSet, including authentik
 
 Applications are wired in through two paths. Those that were adopted from manual deployment and need non-default sync settings have an explicit Application in `bootstrap/apps/`. Everything else is picked up by an ApplicationSet: create an `apps/<name>/` directory and it deploys itself into the `<name>` namespace.
 
 ## Privilege boundary
 
-Two AppProjects. `infra` may create cluster-scoped resources — ClusterRole, CRDs, StorageClass. `apps` may not create anything outside its own namespace. If an application chart tries to create a ClusterRole, the sync fails with a clear error. It is a boundary you hit immediately rather than after the fact.
+Two AppProjects. `infra` may create cluster-scoped resources — ClusterRole, CRDs, StorageClass. `apps` may not create anything outside its own namespace — except the Namespace itself, which the ApplicationSet creates on first deployment. If an application chart tries to create a ClusterRole, the sync fails with a clear error. It is a boundary you hit immediately rather than after the fact.
 
 ## Charts
 
@@ -48,7 +49,7 @@ Two classes. `longhorn` is the default: block storage for databases and small am
 
 ## Secrets
 
-Only SealedSecrets are committed to git. They can be decrypted solely by the controller in this cluster, and the private key is never exported. A separate check makes sure a plain Secret never slips into the repository.
+Only SealedSecrets are committed to git. They can be decrypted solely by the controller in this cluster. An offline copy of its private key is kept outside the cluster for disaster recovery. A separate check makes sure a plain Secret never slips into the repository.
 
 ## Observability
 
@@ -56,7 +57,9 @@ kube-prometheus-stack for metrics, Loki and Alloy for logs, all of it surfaced i
 
 ## What is running now
 
-erpnext with MariaDB via the operator, grocy, k8s-pobeda, plus all of the infrastructure listed above. authentik is currently being rebuilt.
+authentik as single sign-on for the other services (OIDC and forward-auth, configured through blueprints), erpnext with MariaDB via the operator, grocy, paperless-ngx, memos, trilium, Matrix (Synapse), degoog (search), remnawave, vpn-bot, sdamgia-hack, k8s-pobeda, SeaweedFS as S3, plus all of the infrastructure listed above.
+
+A full rebuild of the cluster (kubeadm, Cilium, OpenTofu + Ansible) is being prepared in separate repositories. Until then this repository serves the current cluster.
 
 ## Validation before merge
 
