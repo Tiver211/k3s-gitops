@@ -24,6 +24,8 @@ spec:
               export DATABASE_URL="postgresql://${DB_USER}:${DB_PASSWORD}@remnawave-db-rw:5432/remnawave"
               exec /bin/sh docker-entrypoint.sh pm2-runtime start ecosystem.config.js --env production
           env:
+            - name: NODE_TLS_REJECT_UNAUTHORIZED
+              value: "0"
             - name: DB_USER
               valueFrom:
                 secretKeyRef:
