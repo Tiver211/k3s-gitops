@@ -18,16 +18,6 @@ spec:
         - name: remnawave
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          # DATABASE_URL must be a single connection string (Prisma), but the
-          # password comes from CNPG's generated secret and can't be
-          # interpolated via envValueFrom. docker-entrypoint.sh (upstream)
-          # requires DATABASE_URL to already be set, runs `prisma migrate
-          # deploy`, then `exec "$@"` - this wrapper composes the URL from
-          # the CNPG secret first, then hands off to the *original*
-          # entrypoint+cmd unmodified so migrations still run.
-          # Original: ENTRYPOINT ["/bin/sh","docker-entrypoint.sh"]
-          #           CMD ["pm2-runtime","start","ecosystem.config.js","--env","production"]
-          # Re-verify this if the upstream image's Dockerfile changes.
           command: ["/bin/sh", "-c"]
           args:
             - |
@@ -103,3 +93,18 @@ spec:
             timeoutSeconds: 5
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+
+        # --- SIDECAR GOST (НАЧАЛО) ---
+        - name: proxy-pipe
+          image: gogost/gost:latest
+          args:
+            - "-L=tcp://127.0.0.1:2222/2.26.198.233:2222"
+            - "-F=socks5://192.168.0.100:1090"
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 50m
+              memory: 32Mi
+        # --- SIDECAR GOST (КОНЕЦ) ---
