@@ -99,7 +99,7 @@ spec:
           image: gogost/gost:latest
           args:
             - "-L=tcp://127.0.0.1:2222/2.26.198.233:2222"
-            - "-F=socks5://192.168.0.100:1090"
+            - "-F=socks5h://192.168.0.100:1090"
           resources:
             requests:
               cpu: 10m
